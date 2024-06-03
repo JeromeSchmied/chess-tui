@@ -1,52 +1,53 @@
 use super::{Movable, PieceColor, PieceMove, PieceType, Position};
+use crate::board::Coord;
 use crate::constants::DisplayMode;
 use crate::utils::{
     cleaned_positions, get_piece_color, impossible_positions_king_checked, is_cell_color_ally,
-    is_piece_opposite_king, is_valid,
+    is_piece_opposite_king,
 };
 pub struct Bishop;
 
 impl Movable for Bishop {
     fn piece_move(
-        coordinates: [i8; 2],
+        coordinates: &Coord,
         color: PieceColor,
         board: [[Option<(PieceType, PieceColor)>; 8]; 8],
         allow_move_on_ally_positions: bool,
         _move_history: &[PieceMove],
-    ) -> Vec<Vec<i8>> {
-        let mut positions: Vec<Vec<i8>> = vec![];
+    ) -> Vec<Coord> {
+        let mut positions: Vec<Coord> = vec![];
 
-        let y = coordinates[0];
-        let x = coordinates[1];
+        let y = coordinates.row;
+        let x = coordinates.col;
 
         // for diagonal from piece to top left
-        for i in 1..8i8 {
+        for i in 1..8u8 {
             let new_x = x - i;
             let new_y = y - i;
-            let new_coordinates = [new_y, new_x];
+            let new_coordinates = Coord::new(new_y, new_x);
 
             // Invalid coords
-            if !is_valid(new_coordinates) {
+            if !new_coordinates.is_valid() {
                 break;
             }
 
             // Empty cell
-            if get_piece_color(board, new_coordinates).is_none() {
-                positions.push(new_coordinates.to_vec());
+            if get_piece_color(board, &new_coordinates).is_none() {
+                positions.push(new_coordinates);
                 continue;
             }
             // Ally cell
-            if is_cell_color_ally(board, new_coordinates, color) {
+            if is_cell_color_ally(board, &new_coordinates, color) {
                 if !allow_move_on_ally_positions {
                     break;
                 } else {
-                    positions.push(new_coordinates.to_vec());
+                    positions.push(new_coordinates);
                     break;
                 }
             }
 
             // Enemy cell
-            positions.push(new_coordinates.to_vec());
+            positions.push(new_coordinates);
             if !allow_move_on_ally_positions
                 || !is_piece_opposite_king(board[new_y as usize][new_x as usize], color)
             {
@@ -55,34 +56,34 @@ impl Movable for Bishop {
         }
 
         // for diagonal from piece to bottom right
-        for i in 1..8i8 {
+        for i in 1..8u8 {
             let new_x = x + i;
             let new_y = y + i;
 
-            let new_coordinates = [new_y, new_x];
+            let new_coordinates = Coord::new(new_y, new_x);
 
             // Invalid coords
-            if !is_valid(new_coordinates) {
+            if !new_coordinates.is_valid() {
                 break;
             }
 
             // Empty cell
-            if get_piece_color(board, new_coordinates).is_none() {
-                positions.push(new_coordinates.to_vec());
+            if get_piece_color(board, &new_coordinates).is_none() {
+                positions.push(new_coordinates);
                 continue;
             }
             // Ally cell
-            if is_cell_color_ally(board, new_coordinates, color) {
+            if is_cell_color_ally(board, &new_coordinates, color) {
                 if !allow_move_on_ally_positions {
                     break;
                 } else {
-                    positions.push(new_coordinates.to_vec());
+                    positions.push(new_coordinates);
                     break;
                 }
             }
 
             // Enemy cell
-            positions.push(new_coordinates.to_vec());
+            positions.push(new_coordinates);
             if !allow_move_on_ally_positions
                 || !is_piece_opposite_king(board[new_y as usize][new_x as usize], color)
             {
@@ -91,33 +92,33 @@ impl Movable for Bishop {
         }
 
         // for diagonal from piece to bottom left
-        for i in 1..8i8 {
+        for i in 1..8u8 {
             let new_x = x - i;
             let new_y = y + i;
-            let new_coordinates = [new_y, new_x];
+            let new_coordinates = Coord::new(new_y, new_x);
 
             // Invalid coords
-            if !is_valid(new_coordinates) {
+            if !new_coordinates.is_valid() {
                 break;
             }
 
             // Empty cell
-            if get_piece_color(board, new_coordinates).is_none() {
-                positions.push(new_coordinates.to_vec());
+            if get_piece_color(board, &new_coordinates).is_none() {
+                positions.push(new_coordinates);
                 continue;
             }
             // Ally cell
-            if is_cell_color_ally(board, new_coordinates, color) {
+            if is_cell_color_ally(board, &new_coordinates, color) {
                 if !allow_move_on_ally_positions {
                     break;
                 } else {
-                    positions.push(new_coordinates.to_vec());
+                    positions.push(new_coordinates);
                     break;
                 }
             }
 
             // Enemy cell
-            positions.push(new_coordinates.to_vec());
+            positions.push(new_coordinates);
             if !allow_move_on_ally_positions
                 || !is_piece_opposite_king(board[new_y as usize][new_x as usize], color)
             {
@@ -126,51 +127,51 @@ impl Movable for Bishop {
         }
 
         // for diagonal from piece to top right
-        for i in 1..8i8 {
+        for i in 1..8u8 {
             let new_x = x + i;
             let new_y = y - i;
-            let new_coordinates = [new_y, new_x];
+            let new_coordinates = Coord::new(new_y, new_x);
 
             // Invalid coords
-            if !is_valid(new_coordinates) {
+            if !new_coordinates.is_valid() {
                 break;
             }
 
             // Empty cell
-            if get_piece_color(board, new_coordinates).is_none() {
-                positions.push(new_coordinates.to_vec());
+            if get_piece_color(board, &new_coordinates).is_none() {
+                positions.push(new_coordinates);
                 continue;
             }
             // Ally cell
-            if is_cell_color_ally(board, new_coordinates, color) {
+            if is_cell_color_ally(board, &new_coordinates, color) {
                 if !allow_move_on_ally_positions {
                     break;
                 } else {
-                    positions.push(new_coordinates.to_vec());
+                    positions.push(new_coordinates);
                     break;
                 }
             }
 
             // Enemy cell
-            positions.push(new_coordinates.to_vec());
+            positions.push(new_coordinates);
             if !allow_move_on_ally_positions
                 || !is_piece_opposite_king(board[new_y as usize][new_x as usize], color)
             {
                 break;
             }
         }
-        cleaned_positions(positions)
+        cleaned_positions(&positions)
     }
 }
 
 impl Position for Bishop {
     fn authorized_positions(
-        coordinates: [i8; 2],
+        coordinates: &Coord,
         color: PieceColor,
         board: [[Option<(PieceType, PieceColor)>; 8]; 8],
         move_history: &[PieceMove],
         _is_king_checked: bool,
-    ) -> Vec<Vec<i8>> {
+    ) -> Vec<Coord> {
         // if the king is checked we clean all the position not resolving the check
         impossible_positions_king_checked(
             coordinates,

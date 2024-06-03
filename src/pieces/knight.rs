@@ -1,19 +1,18 @@
 use super::{Movable, PieceColor, PieceMove, PieceType, Position};
+use crate::board::Coord;
 use crate::constants::DisplayMode;
-use crate::utils::{
-    cleaned_positions, impossible_positions_king_checked, is_cell_color_ally, is_valid,
-};
+use crate::utils::{cleaned_positions, impossible_positions_king_checked, is_cell_color_ally};
 pub struct Knight;
 
 impl Movable for Knight {
     fn piece_move(
-        coordinates: [i8; 2],
+        coordinates: &Coord,
         color: PieceColor,
         board: [[Option<(PieceType, PieceColor)>; 8]; 8],
         allow_move_on_ally_positions: bool,
         _move_history: &[PieceMove],
-    ) -> Vec<Vec<i8>> {
-        let mut positions: Vec<Vec<i8>> = Vec::new();
+    ) -> Vec<Coord> {
+        let mut positions: Vec<Coord> = Vec::new();
 
         let (y, x) = (coordinates[0], coordinates[1]);
 

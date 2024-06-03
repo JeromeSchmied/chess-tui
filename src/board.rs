@@ -4,7 +4,7 @@ use crate::{
     utils::{
         col_to_letter, convert_notation_into_position, convert_position_into_notation,
         did_piece_already_move, get_cell_paragraph, get_int_from_char, get_king_coordinates,
-        get_piece_color, get_piece_type, get_player_turn_in_modulo, is_getting_checked, is_valid,
+        get_piece_color, get_piece_type, get_player_turn_in_modulo, is_getting_checked,
     },
 };
 use ratatui::{
@@ -19,9 +19,9 @@ use uci::Engine;
 #[derive(PartialEq, Clone)]
 pub struct Coord {
     /// row, line, y
-    row: u8,
+    pub row: u8,
     /// column, x
-    col: u8,
+    pub col: u8,
 }
 impl Coord {
     pub fn new<T: Into<u8>>(row: T, col: T) -> Self {
@@ -30,8 +30,8 @@ impl Coord {
             col: col.into(),
         }
     }
-    /// not undefined
-    fn valid(&self) -> bool {
+    /// is undefined
+    fn is_undefined(&self) -> bool {
         *self == Self::undefined()
     }
     /// not yet set, has to later be set before using
@@ -40,6 +40,11 @@ impl Coord {
             row: UNDEFINED_POSITION,
             col: UNDEFINED_POSITION,
         }
+    }
+
+    /// checks whether `self` is valid as a chess board coordinate
+    pub fn is_valid(&self) -> bool {
+        (0..8).contains(&self.col) && (0..8).contains(&self.col)
     }
 }
 
@@ -173,7 +178,7 @@ impl Board {
 
     // Check if a cell has been selected
     fn is_cell_selected(&self) -> bool {
-        self.selected_coordinates.valid()
+        !self.selected_coordinates.is_undefined()
     }
 
     fn get_authorized_positions(
@@ -181,7 +186,7 @@ impl Board {
         piece_type: Option<PieceType>,
         piece_color: Option<PieceColor>,
         coordinates: Coord,
-    ) -> Vec<Vec<i8>> {
+    ) -> Vec<Coord> {
         match (piece_type, piece_color) {
             (Some(piece_type), Some(piece_color)) => piece_type.authorized_positions(
                 coordinates,
@@ -262,8 +267,8 @@ impl Board {
        We make sure that the cursor is in the authorized positions
     */
     fn move_selected_piece_cursor(&mut self, first_time_moving: bool, direction: i8) {
-        let piece_color = get_piece_color(self.board, self.selected_coordinates);
-        let piece_type = get_piece_type(self.board, self.selected_coordinates);
+        let piece_color = get_piece_color(self.board, &self.selected_coordinates);
+        let piece_type = get_piece_type(self.board, &self.selected_coordinates);
 
         let mut authorized_positions =
             self.get_authorized_positions(piece_type, piece_color, self.selected_coordinates);
@@ -284,7 +289,7 @@ impl Board {
             authorized_positions.sort();
 
             if let Some(position) = authorized_positions.get(self.selected_piece_cursor as usize) {
-                self.cursor_coordinates = Coord::new(position[0], position[1]);
+                self.cursor_coordinates = *position;
             }
         } else {
             self.cursor_coordinates = Coord::undefined();
@@ -299,8 +304,8 @@ impl Board {
         } else if !self.is_checkmate && !self.is_draw {
             if !self.is_cell_selected() {
                 // Check if the piece on the cell can move before selecting it
-                let piece_color = get_piece_color(self.board, self.cursor_coordinates);
-                let piece_type = get_piece_type(self.board, self.cursor_coordinates);
+                let piece_color = get_piece_color(self.board, &self.cursor_coordinates);
+                let piece_type = get_piece_type(self.board, &self.cursor_coordinates);
 
                 let authorized_positions =
                     self.get_authorized_positions(piece_type, piece_color, self.cursor_coordinates);
@@ -308,7 +313,7 @@ impl Board {
                 if authorized_positions.is_empty() {
                     return;
                 }
-                if let Some(piece_color) = get_piece_color(self.board, self.cursor_coordinates) {
+                if let Some(piece_color) = get_piece_color(self.board, &self.cursor_coordinates) {
                     if piece_color == self.player_turn {
                         self.selected_coordinates = self.cursor_coordinates;
                         self.old_cursor_position = self.cursor_coordinates;
@@ -317,7 +322,7 @@ impl Board {
                 }
             } else {
                 // We already selected a piece
-                if is_valid(self.cursor_coordinates) {
+                if self.cursor_coordinates.is_valid() {
                     let selected_coords_usize: [usize; 2] = [
                         self.selected_coordinates.row as usize,
                         self.selected_coordinates.col as usize,
@@ -518,8 +523,8 @@ impl Board {
     }
 
     // Move a piece from a cell to another
-    pub fn move_piece_on_the_board(&mut self, from: [usize; 2], to: [usize; 2]) {
-        if !is_valid([from[0] as i8, from[1] as i8]) || !is_valid([to[0] as i8, to[1] as i8]) {
+    pub fn move_piece_on_the_board(&mut self, from: &Coord, to: &Coord) {
+        if !from.is_valid() || !to.is_valid() {
             return;
         }
         let direction_y: i32 = if self.player_turn == PieceColor::White {
@@ -747,7 +752,7 @@ impl Board {
             .split(area);
 
         // For each line we set 8 layout
-        for i in 0..8i8 {
+        for i in 0..8u8 {
             let lines = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints(
@@ -766,15 +771,16 @@ impl Board {
                     .as_ref(),
                 )
                 .split(columns[i as usize + 1]);
-            for j in 0..8i8 {
+            for j in 0..8u8 {
                 // Color of the cell to draw the board
                 let mut cell_color: Color = if (i + j) % 2 == 0 { WHITE } else { BLACK };
 
                 // Draw the available moves for the selected piece
                 if self.is_cell_selected() {
-                    let selected_piece_type = get_piece_type(self.board, self.selected_coordinates);
+                    let selected_piece_type =
+                        get_piece_type(self.board, &self.selected_coordinates);
                     let selected_piece_color: Option<PieceColor> =
-                        get_piece_color(self.board, self.selected_coordinates);
+                        get_piece_color(self.board, &self.selected_coordinates);
                     let positions = self.get_authorized_positions(
                         selected_piece_type,
                         selected_piece_color,
@@ -821,7 +827,7 @@ impl Board {
                 }
 
                 // Get piece and color
-                let paragraph = get_cell_paragraph(self, [i, j], square);
+                let paragraph = get_cell_paragraph(self, &Coord::new(i, j), square);
 
                 frame.render_widget(paragraph, square);
             }

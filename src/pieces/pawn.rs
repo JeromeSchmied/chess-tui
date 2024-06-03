@@ -1,32 +1,33 @@
 use super::{Movable, PieceColor, PieceMove, PieceType, Position};
+use crate::board::Coord;
 use crate::constants::DisplayMode;
 use crate::utils::{
     cleaned_positions, get_latest_move, get_piece_color, impossible_positions_king_checked,
-    is_cell_color_ally, is_valid,
+    is_cell_color_ally,
 };
 
 pub struct Pawn;
 
 impl Movable for Pawn {
     fn piece_move(
-        coordinates: [i8; 2],
+        coordinates: &Coord,
         color: PieceColor,
         board: [[Option<(PieceType, PieceColor)>; 8]; 8],
         allow_move_on_ally_positions: bool,
         move_history: &[PieceMove],
-    ) -> Vec<Vec<i8>> {
+    ) -> Vec<Coord> {
         // Pawns can only move in one direction depending of their color
         // -1 if they are white (go up) +1 if they are black (go down)
-        let direction = if color == PieceColor::White { -1 } else { 1 };
+        let direction: i8 = if color == PieceColor::White { -1 } else { 1 };
 
         let mut positions: Vec<Vec<i8>> = vec![];
 
-        let (y, x) = (coordinates[0], coordinates[1]);
+        let (y, x) = (coordinates.row, coordinates.col);
 
         // move one in front
         let new_x_front_one = x;
         let new_y_front_one = y + direction;
-        let new_coordinates_front_one = [new_y_front_one, new_x_front_one];
+        let new_coordinates_front_one = Coord::new(new_y_front_one, new_x_front_one);
 
         if is_valid(new_coordinates_front_one)
             && !allow_move_on_ally_positions
@@ -117,7 +118,7 @@ impl Movable for Pawn {
 
 impl Position for Pawn {
     fn authorized_positions(
-        coordinates: [i8; 2],
+        coordinates: &Coord,
         color: PieceColor,
         board: [[Option<(PieceType, PieceColor)>; 8]; 8],
         move_history: &[PieceMove],

@@ -1,5 +1,5 @@
 use crate::{
-    board::Board,
+    board::{Board, Coord},
     constants::{DisplayMode, UNDEFINED_POSITION},
     pieces::{PieceColor, PieceMove, PieceType},
 };
@@ -11,16 +11,16 @@ use ratatui::{
 
 pub fn get_piece_color(
     board: [[Option<(PieceType, PieceColor)>; 8]; 8],
-    coordinates: [i8; 2],
+    coordinates: &Coord,
 ) -> Option<PieceColor> {
-    board[coordinates[0] as usize][coordinates[1] as usize].map(|(_, piece_color)| piece_color)
+    board[coordinates.row as usize][coordinates.col as usize].map(|(_, piece_color)| piece_color)
 }
 
 pub fn get_piece_type(
     board: [[Option<(PieceType, PieceColor)>; 8]; 8],
-    coordinates: [i8; 2],
+    coordinates: &Coord,
 ) -> Option<PieceType> {
-    board[coordinates[0] as usize][coordinates[1] as usize].map(|(piece_type, _)| piece_type)
+    board[coordinates.row as usize][coordinates.col as usize].map(|(piece_type, _)| piece_type)
 }
 
 pub fn get_opposite_color(color: PieceColor) -> PieceColor {
@@ -31,11 +31,11 @@ pub fn get_opposite_color(color: PieceColor) -> PieceColor {
 }
 
 // method to clean the position array to remove impossible positions
-pub fn cleaned_positions(positions: Vec<Vec<i8>>) -> Vec<Vec<i8>> {
-    let mut cleaned_array: Vec<Vec<i8>> = vec![];
+pub fn cleaned_positions(positions: &[Coord]) -> Vec<Coord> {
+    let mut cleaned_array: Vec<Coord> = vec![];
     for position in positions {
-        if is_valid([position[0], position[1]]) {
-            cleaned_array.push(position);
+        if position.is_valid() {
+            cleaned_array.push(position.clone());
         }
     }
     cleaned_array
@@ -44,19 +44,13 @@ pub fn cleaned_positions(positions: Vec<Vec<i8>>) -> Vec<Vec<i8>> {
 // Return true forally cell color; false for enemy
 pub fn is_cell_color_ally(
     board: [[Option<(PieceType, PieceColor)>; 8]; 8],
-    coordinates: [i8; 2],
+    coordinates: &Coord,
     color: PieceColor,
 ) -> bool {
     match get_piece_color(board, coordinates) {
         Some(cell_color) => cell_color == color,
         None => false, // Treat empty cell as ally
     }
-}
-
-pub fn is_valid(coordinates: [i8; 2]) -> bool {
-    let (y, x) = (coordinates[0], coordinates[1]);
-
-    (0..8).contains(&y) && (0..8).contains(&x)
 }
 
 pub fn is_vec_in_array(array: Vec<Vec<i8>>, element: [i8; 2]) -> bool {
@@ -221,27 +215,20 @@ pub fn is_getting_checked(
 }
 
 pub fn impossible_positions_king_checked(
-    original_coordinates: [i8; 2],
-    positions: Vec<Vec<i8>>,
+    original_coordinates: &Coord,
+    positions: Vec<Coord>,
     board: [[Option<(PieceType, PieceColor)>; 8]; 8],
     color: PieceColor,
     move_history: &[PieceMove],
-) -> Vec<Vec<i8>> {
-    let mut cleaned_position: Vec<Vec<i8>> = vec![];
+) -> Vec<Coord> {
+    let mut cleaned_position: Vec<Coord> = vec![];
     for position in positions {
         // We create a new board
         let mut new_board = Board::new(board, color, move_history.to_owned().clone());
 
         // We simulate the move
 
-        Board::move_piece_on_the_board(
-            &mut new_board,
-            [
-                original_coordinates[0] as usize,
-                original_coordinates[1] as usize,
-            ],
-            [position[0] as usize, position[1] as usize],
-        );
+        Board::move_piece_on_the_board(&mut new_board, &original_coordinates, &position);
 
         // We check if the board is still checked with this move meaning it didn't resolve the problem
         if !is_getting_checked(
@@ -274,7 +261,7 @@ pub fn color_to_ratatui_enum(piece_color: Option<PieceColor>) -> Color {
 
 pub fn get_cell_paragraph(
     board: &Board,
-    cell_coordinates: [i8; 2],
+    cell_coordinates: &Coord,
     bounding_rect: Rect,
 ) -> Paragraph<'_> {
     // Get piece and color

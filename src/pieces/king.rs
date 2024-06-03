@@ -2,7 +2,7 @@ use super::{Movable, PieceColor, PieceMove, PieceType, Position};
 use crate::constants::DisplayMode;
 use crate::utils::{
     cleaned_positions, did_piece_already_move, get_all_protected_cells, get_piece_type,
-    is_cell_color_ally, is_valid, is_vec_in_array,
+    is_cell_color_ally, is_vec_in_array,
 };
 pub struct King;
 
@@ -27,7 +27,7 @@ impl Movable for King {
                 let new_y = y + dy;
 
                 let new_coordinates = [new_y, new_x];
-                if is_valid(new_coordinates)
+                if new_coordinates.is_valid()
                     && (!is_cell_color_ally(board, [new_y, new_x], color)
                         || allow_move_on_ally_positions)
                 {
