@@ -18,7 +18,9 @@ use uci::Engine;
 
 #[derive(PartialEq, Clone)]
 pub struct Coord {
+    /// row, line, y
     row: u8,
+    /// column, x
     col: u8,
 }
 impl Coord {
@@ -28,12 +30,12 @@ impl Coord {
             col: col.into(),
         }
     }
+    /// not undefined
     fn valid(&self) -> bool {
-        *self == Self::default()
+        *self == Self::undefined()
     }
-}
-impl Default for Coord {
-    fn default() -> Self {
+    /// not yet set, has to later be set before using
+    fn undefined() -> Self {
         Coord {
             row: UNDEFINED_POSITION,
             col: UNDEFINED_POSITION,
@@ -109,9 +111,9 @@ impl Default for Board {
                 ],
             ],
             cursor_coordinates: Coord::new(4, 4),
-            selected_coordinates: Coord::default(),
+            selected_coordinates: Coord::undefined(),
             selected_piece_cursor: 0,
-            old_cursor_position: Coord::default(),
+            old_cursor_position: Coord::undefined(),
             player_turn: PieceColor::White,
             move_history: vec![],
             is_draw: false,
@@ -135,9 +137,9 @@ impl Board {
         Self {
             board,
             cursor_coordinates: Coord::new(4, 4),
-            selected_coordinates: Coord::default(),
+            selected_coordinates: Coord::undefined(),
             selected_piece_cursor: 0,
-            old_cursor_position: Coord::default(),
+            old_cursor_position: Coord::undefined(),
             player_turn,
             move_history,
             is_draw: false,
@@ -250,7 +252,7 @@ impl Board {
     // Method to unselect a cell
     pub fn unselect_cell(&mut self) {
         if self.is_cell_selected() {
-            self.selected_coordinates = Coord::default();
+            self.selected_coordinates = Coord::undefined();
             self.selected_piece_cursor = 0;
             self.cursor_coordinates = self.old_cursor_position.clone()
         }
@@ -285,7 +287,7 @@ impl Board {
                 self.cursor_coordinates = Coord::new(position[0], position[1]);
             }
         } else {
-            self.cursor_coordinates = Coord::default();
+            self.cursor_coordinates = Coord::undefined();
         }
     }
 
