@@ -16,12 +16,37 @@ use ratatui::{
 };
 use uci::Engine;
 
+#[derive(PartialEq, Clone)]
+pub struct Coord {
+    row: u8,
+    col: u8,
+}
+impl Coord {
+    pub fn new<T: Into<u8>>(row: T, col: T) -> Self {
+        Coord {
+            row: row.into(),
+            col: col.into(),
+        }
+    }
+    fn valid(&self) -> bool {
+        *self == Self::default()
+    }
+}
+impl Default for Coord {
+    fn default() -> Self {
+        Coord {
+            row: UNDEFINED_POSITION,
+            col: UNDEFINED_POSITION,
+        }
+    }
+}
+
 pub struct Board {
     pub board: [[Option<(PieceType, PieceColor)>; 8]; 8],
-    pub cursor_coordinates: [i8; 2],
-    pub selected_coordinates: [i8; 2],
+    pub cursor_coordinates: Coord,
+    pub selected_coordinates: Coord,
     pub selected_piece_cursor: i8,
-    pub old_cursor_position: [i8; 2],
+    pub old_cursor_position: Coord,
     pub player_turn: PieceColor,
     pub move_history: Vec<PieceMove>,
     pub is_draw: bool,
@@ -83,10 +108,10 @@ impl Default for Board {
                     Some((PieceType::Rook, PieceColor::White)),
                 ],
             ],
-            cursor_coordinates: [4, 4],
-            selected_coordinates: [UNDEFINED_POSITION, UNDEFINED_POSITION],
+            cursor_coordinates: Coord::new(4, 4),
+            selected_coordinates: Coord::default(),
             selected_piece_cursor: 0,
-            old_cursor_position: [UNDEFINED_POSITION, UNDEFINED_POSITION],
+            old_cursor_position: Coord::default(),
             player_turn: PieceColor::White,
             move_history: vec![],
             is_draw: false,
@@ -109,10 +134,10 @@ impl Board {
     ) -> Self {
         Self {
             board,
-            cursor_coordinates: [4, 4],
-            selected_coordinates: [UNDEFINED_POSITION, UNDEFINED_POSITION],
+            cursor_coordinates: Coord::new(4, 4),
+            selected_coordinates: Coord::default(),
             selected_piece_cursor: 0,
-            old_cursor_position: [UNDEFINED_POSITION, UNDEFINED_POSITION],
+            old_cursor_position: Coord::default(),
             player_turn,
             move_history,
             is_draw: false,
@@ -146,15 +171,14 @@ impl Board {
 
     // Check if a cell has been selected
     fn is_cell_selected(&self) -> bool {
-        self.selected_coordinates[0] != UNDEFINED_POSITION
-            && self.selected_coordinates[1] != UNDEFINED_POSITION
+        self.selected_coordinates.valid()
     }
 
     fn get_authorized_positions(
         &self,
         piece_type: Option<PieceType>,
         piece_color: Option<PieceColor>,
-        coordinates: [i8; 2],
+        coordinates: Coord,
     ) -> Vec<Vec<i8>> {
         match (piece_type, piece_color) {
             (Some(piece_type), Some(piece_color)) => piece_type.authorized_positions(
@@ -180,8 +204,8 @@ impl Board {
         if !self.is_checkmate && !self.is_draw && !self.is_promotion {
             if self.is_cell_selected() {
                 self.move_selected_piece_cursor(false, -1)
-            } else if self.cursor_coordinates[0] > 0 {
-                self.cursor_coordinates[0] -= 1
+            } else if self.cursor_coordinates.row > 0 {
+                self.cursor_coordinates.row -= 1
             }
         }
     }
@@ -189,8 +213,8 @@ impl Board {
         if !self.is_checkmate && !self.is_draw && !self.is_promotion {
             if self.is_cell_selected() {
                 self.move_selected_piece_cursor(false, 1)
-            } else if self.cursor_coordinates[0] < 7 {
-                self.cursor_coordinates[0] += 1
+            } else if self.cursor_coordinates.row < 7 {
+                self.cursor_coordinates.row += 1
             }
         }
     }
@@ -205,8 +229,8 @@ impl Board {
         } else if !self.is_checkmate && !self.is_draw {
             if self.is_cell_selected() {
                 self.move_selected_piece_cursor(false, -1)
-            } else if self.cursor_coordinates[1] > 0 {
-                self.cursor_coordinates[1] -= 1
+            } else if self.cursor_coordinates.col > 0 {
+                self.cursor_coordinates.col -= 1
             }
         }
     }
@@ -217,8 +241,8 @@ impl Board {
         } else if !self.is_checkmate && !self.is_draw {
             if self.is_cell_selected() {
                 self.move_selected_piece_cursor(false, 1)
-            } else if self.cursor_coordinates[1] < 7 {
-                self.cursor_coordinates[1] += 1
+            } else if self.cursor_coordinates.col < 7 {
+                self.cursor_coordinates.col += 1
             }
         }
     }
@@ -226,10 +250,9 @@ impl Board {
     // Method to unselect a cell
     pub fn unselect_cell(&mut self) {
         if self.is_cell_selected() {
-            self.selected_coordinates[0] = UNDEFINED_POSITION;
-            self.selected_coordinates[1] = UNDEFINED_POSITION;
+            self.selected_coordinates = Coord::default();
             self.selected_piece_cursor = 0;
-            self.cursor_coordinates = self.old_cursor_position
+            self.cursor_coordinates = self.old_cursor_position.clone()
         }
     }
 
@@ -259,10 +282,10 @@ impl Board {
             authorized_positions.sort();
 
             if let Some(position) = authorized_positions.get(self.selected_piece_cursor as usize) {
-                self.cursor_coordinates = [position[0], position[1]];
+                self.cursor_coordinates = Coord::new(position[0], position[1]);
             }
         } else {
-            self.cursor_coordinates = [UNDEFINED_POSITION, UNDEFINED_POSITION];
+            self.cursor_coordinates = Coord::default();
         }
     }
 
@@ -294,12 +317,12 @@ impl Board {
                 // We already selected a piece
                 if is_valid(self.cursor_coordinates) {
                     let selected_coords_usize: [usize; 2] = [
-                        self.selected_coordinates[0] as usize,
-                        self.selected_coordinates[1] as usize,
+                        self.selected_coordinates.row as usize,
+                        self.selected_coordinates.col as usize,
                     ];
-                    let cursor_coords_usize: [usize; 2] = [
-                        self.cursor_coordinates[0] as usize,
-                        self.cursor_coordinates[1] as usize,
+                    let cursor_coords_usize = [
+                        self.cursor_coordinates.row as usize,
+                        self.cursor_coordinates.col as usize,
                     ];
                     self.move_piece_on_the_board(selected_coords_usize, cursor_coords_usize);
                     self.unselect_cell();
@@ -766,7 +789,7 @@ impl Board {
 
                 let square = lines[j as usize + 1];
                 // Draw the cell blue if this is the current cursor cell
-                if i == self.cursor_coordinates[0] && j == self.cursor_coordinates[1] {
+                if i == self.cursor_coordinates.row && j == self.cursor_coordinates.col {
                     let cell = Block::default().bg(Color::LightBlue);
                     frame.render_widget(cell.clone(), square);
                 } else if is_getting_checked(self.board, self.player_turn, &self.move_history)
@@ -778,7 +801,7 @@ impl Board {
                     frame.render_widget(cell.clone(), square);
                 }
                 // Draw the cell green if this is the selected cell
-                else if i == self.selected_coordinates[0] && j == self.selected_coordinates[1] {
+                else if i == self.selected_coordinates.row && j == self.selected_coordinates.col {
                     let cell = Block::default().bg(Color::LightGreen);
                     frame.render_widget(cell.clone(), square);
                 } else {
