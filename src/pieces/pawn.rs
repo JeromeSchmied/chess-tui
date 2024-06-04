@@ -56,9 +56,13 @@ impl Movable for Pawn {
         let new_coordinates_right = Coord::new(new_y_right as u8, new_x_right);
 
         // check for enemy piece on the left
-        let new_x_left = x - 1;
+        let new_x_left = x.checked_sub(1);
         let new_y_left = y as i8 + direction;
-        let new_coordinates_left = Coord::new(new_y_left as u8, new_x_left);
+        let new_coordinates_left = if let Some(new_x_left) = new_x_left {
+            Coord::new(new_y_left as u8, new_x_left)
+        } else {
+            Coord::undefined()
+        };
 
         // If we allow on ally position we push it anyway
 
