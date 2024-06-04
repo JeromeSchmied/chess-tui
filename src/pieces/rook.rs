@@ -57,7 +57,11 @@ impl Movable for Rook {
 
         // LEFT ROW
         for i in 1..=8 {
-            let new_x = x - i;
+            let new_x = if let Some(new_x) = x.checked_sub(i) {
+                new_x
+            } else {
+                break;
+            };
             let new_y = y;
             let new_coordinates = Coord::new(new_y, new_x);
 
