@@ -22,8 +22,16 @@ impl Movable for Bishop {
 
         // for diagonal from piece to top left
         for i in 1..8u8 {
-            let new_x = x - i;
-            let new_y = y - i;
+            let new_x = if let Some(new_x) = x.checked_sub(i) {
+                new_x
+            } else {
+                break;
+            };
+            let new_y = if let Some(new_y) = y.checked_sub(i) {
+                new_y
+            } else {
+                break;
+            };
             let new_coordinates = Coord::new(new_y, new_x);
 
             // Invalid coords
@@ -93,7 +101,11 @@ impl Movable for Bishop {
 
         // for diagonal from piece to bottom left
         for i in 1..8u8 {
-            let new_x = x - i;
+            let new_x = if let Some(new_x) = x.checked_sub(i) {
+                new_x
+            } else {
+                break;
+            };
             let new_y = y + i;
             let new_coordinates = Coord::new(new_y, new_x);
 
@@ -129,7 +141,11 @@ impl Movable for Bishop {
         // for diagonal from piece to top right
         for i in 1..8u8 {
             let new_x = x + i;
-            let new_y = y - i;
+            let new_y = if let Some(new_y) = y.checked_sub(i) {
+                new_y
+            } else {
+                break;
+            };
             let new_coordinates = Coord::new(new_y, new_x);
 
             // Invalid coords
