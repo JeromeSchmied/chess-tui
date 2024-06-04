@@ -53,13 +53,8 @@ pub fn is_cell_color_ally(
     }
 }
 
-pub fn is_vec_in_array(array: Vec<Vec<i8>>, element: [i8; 2]) -> bool {
-    for position in array {
-        if position == element {
-            return true;
-        }
-    }
-    false
+pub fn is_vec_in_array(array: Vec<Coord>, element: &Coord) -> bool {
+    array.contains(element)
 }
 
 // We get all the cells that are getting put in 'check'

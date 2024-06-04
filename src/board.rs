@@ -185,7 +185,7 @@ impl Board {
         &self,
         piece_type: Option<PieceType>,
         piece_color: Option<PieceColor>,
-        coordinates: Coord,
+        coordinates: &Coord,
     ) -> Vec<Coord> {
         match (piece_type, piece_color) {
             (Some(piece_type), Some(piece_color)) => piece_type.authorized_positions(
@@ -271,7 +271,7 @@ impl Board {
         let piece_type = get_piece_type(self.board, &self.selected_coordinates);
 
         let mut authorized_positions =
-            self.get_authorized_positions(piece_type, piece_color, self.selected_coordinates);
+            self.get_authorized_positions(piece_type, piece_color, &self.selected_coordinates);
 
         if !authorized_positions.is_empty() {
             self.selected_piece_cursor = if self.selected_piece_cursor == 0 && first_time_moving {
@@ -289,7 +289,7 @@ impl Board {
             authorized_positions.sort();
 
             if let Some(position) = authorized_positions.get(self.selected_piece_cursor as usize) {
-                self.cursor_coordinates = *position;
+                self.cursor_coordinates = position.clone();
             }
         } else {
             self.cursor_coordinates = Coord::undefined();
@@ -310,7 +310,7 @@ impl Board {
                 let authorized_positions = self.get_authorized_positions(
                     piece_type,
                     piece_color,
-                    self.cursor_coordinates.clone(),
+                    &self.cursor_coordinates,
                 );
 
                 if authorized_positions.is_empty() {
@@ -564,8 +564,8 @@ impl Board {
         if self.is_latest_move_castling(from, to) {
             // we set the king 2 cells on where it came from
 
-            let from_x: i32 = from[1] as i32;
-            let mut to_x: i32 = to[1] as i32;
+            let from_x: i32 = from.col as i32;
+            let mut to_x: i32 = to.col as i32;
 
             let distance = from_x - to_x;
             let direction_x = if distance > 0 { -1 } else { 1 };
@@ -575,7 +575,8 @@ impl Board {
             let row_index = from_x + direction_x * 2;
 
             // We put move the king 2 cells
-            self.board[to[0]][row_index as usize] = self.board[from[0]][from[1]];
+            self.board[to.row as usize][row_index as usize] =
+                self.board[from.row as usize][from.col as usize];
 
             // We put the rook 3 cells from it's position if it's a big castling else 2 cells
             // If it is playing against a bot we will receive 4 -> 6  and 4 -> 2 for to_x instead of 4 -> 7 and 4 -> 0
@@ -595,29 +596,31 @@ impl Board {
                 }
                 _ => unreachable!("Undefined distance for castling"),
             }
-            self.board[to[0]][row_index_rook as usize] = self.board[to[0]][to_x as usize];
+            self.board[to.row as usize][row_index_rook as usize] =
+                self.board[to.row as usize][to_x as usize];
 
             // We remove the latest rook
-            self.board[to[0]][to_x as usize] = None;
+            self.board[to.row as usize][to_x as usize] = None;
         } else {
-            self.board[to[0]][to[1]] = self.board[from[0]][from[1]];
+            self.board[to.row as usize][to.col as usize] =
+                self.board[from.row as usize][from.col as usize];
         }
 
-        self.board[from[0]][from[1]] = None;
+        self.board[from.row as usize][from.col as usize] = None;
 
         // We store it in the history
         self.move_history.push(PieceMove {
             piece_type: piece_type_from,
-            from_y: from[0] as i8,
-            from_x: from[1] as i8,
-            to_y: to[0] as i8,
-            to_x: to[1] as i8,
+            from_y: from.row as i8,
+            from_x: from.col as i8,
+            to_y: to.row as i8,
+            to_x: to.col as i8,
         });
     }
 
     // Method to get the number of authorized positions for the current player (used for the end condition)
     pub fn number_of_authorized_positions(&self) -> usize {
-        let mut possible_moves: Vec<Vec<i8>> = vec![];
+        let mut possible_moves: Vec<Coord> = vec![];
 
         for i in 0..8 {
             for j in 0..8 {
@@ -626,7 +629,7 @@ impl Board {
                         possible_moves.extend(self.get_authorized_positions(
                             Some(piece_type),
                             Some(piece_color),
-                            [i as i8, j as i8],
+                            &Coord::new(i as u8, j as u8),
                         ))
                     }
                 }
@@ -647,7 +650,9 @@ impl Board {
         match (piece_type_from, piece_type_to) {
             (Some(PieceType::Pawn), _) => {
                 // Check if it's a diagonal move, and the destination is an empty cell
-                from_y != to_y && from_x != to_x && self.board[to.row][to.col].is_none()
+                from_y != to_y
+                    && from_x != to_x
+                    && self.board[to.row as usize][to.col as usize].is_none()
             }
             _ => false,
         }
@@ -671,8 +676,14 @@ impl Board {
     // Check if the latest move is a promotion
     fn is_latest_move_promotion(&self) -> bool {
         if let Some(last_move) = self.move_history.last() {
-            if let Some(piece_type_to) = get_piece_type(self.board, &last_move) {
-                if let Some(piece_color) = get_piece_color(self.board, &last_move) {
+            if let Some(piece_type_to) = get_piece_type(
+                self.board,
+                &Coord::new(last_move.to_y as u8, last_move.to_x as u8),
+            ) {
+                if let Some(piece_color) = get_piece_color(
+                    self.board,
+                    &Coord::new(last_move.to_y as u8, last_move.to_x as u8),
+                ) {
                     let last_row = if piece_color == PieceColor::White {
                         0
                     } else {
@@ -780,7 +791,7 @@ impl Board {
                     let positions = self.get_authorized_positions(
                         selected_piece_type,
                         selected_piece_color,
-                        self.selected_coordinates,
+                        &self.selected_coordinates,
                     );
 
                     // Draw grey if the color is in the authorized positions
@@ -797,7 +808,7 @@ impl Board {
                     let cell = Block::default().bg(Color::LightBlue);
                     frame.render_widget(cell.clone(), square);
                 } else if is_getting_checked(self.board, self.player_turn, &self.move_history)
-                    && [i, j] == get_king_coordinates(self.board, self.player_turn)
+                    && Coord::new(i, j) == get_king_coordinates(self.board, self.player_turn)
                 {
                     let cell = Block::default()
                         .bg(Color::Magenta)
@@ -823,7 +834,8 @@ impl Board {
                 }
 
                 // Get piece and color
-                let paragraph = get_cell_paragraph(self, &Coord::new(i, j), square);
+                let coord = Coord::new(i, j);
+                let paragraph = get_cell_paragraph(self, &coord, square);
 
                 frame.render_widget(paragraph, square);
             }
@@ -911,7 +923,7 @@ impl Board {
 #[cfg(test)]
 mod tests {
     use crate::{
-        board::Board,
+        board::{Board, Coord},
         pieces::{PieceColor, PieceMove, PieceType},
         utils::is_getting_checked,
     };
@@ -1507,7 +1519,7 @@ mod tests {
         assert!(!board.is_latest_move_promotion());
 
         // Move the pawn to a promote cell
-        board.move_piece_on_the_board([1, 4], [0, 4]);
+        board.move_piece_on_the_board(&Coord::new(1, 4), &Coord::new(0, 4));
         assert!(board.is_latest_move_promotion());
 
         // Promote the pawn
@@ -1618,7 +1630,7 @@ mod tests {
         assert!(!board.is_latest_move_promotion());
 
         // Move the pawn to a promote cell
-        board.move_piece_on_the_board([6, 5], [7, 5]);
+        board.move_piece_on_the_board(&Coord::new(6, 5), &Coord::new(7, 5));
         assert!(board.is_latest_move_promotion());
 
         // Promote the pawn
@@ -1662,7 +1674,7 @@ mod tests {
         assert!(!board.is_draw());
 
         // Move the pawn to a make the 50th move
-        board.move_piece_on_the_board([1, 6], [1, 5]);
+        board.move_piece_on_the_board(&Coord::new(1, 6), &Coord::new(1, 5));
         assert!(board.is_draw());
     }
 
@@ -1754,7 +1766,7 @@ mod tests {
         assert!(!board.is_draw());
 
         // Move the king to replicate a third time the same position
-        board.move_piece_on_the_board([0, 2], [0, 1]);
+        board.move_piece_on_the_board(&Coord::new(0, 2), &Coord::new(0, 1));
         assert!(board.is_draw());
     }
 

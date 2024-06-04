@@ -22,50 +22,38 @@ pub enum PieceType {
 impl PieceType {
     pub fn authorized_positions(
         self,
-        coordinates: Coord,
+        coordinates: &Coord,
         color: PieceColor,
         board: [[Option<(PieceType, PieceColor)>; 8]; 8],
         move_history: &[PieceMove],
         is_king_checked: bool,
     ) -> Vec<Coord> {
         match self {
-            PieceType::Pawn => Pawn::authorized_positions(
-                &coordinates,
-                color,
-                board,
-                move_history,
-                is_king_checked,
-            ),
-            PieceType::Rook => Rook::authorized_positions(
-                &coordinates,
-                color,
-                board,
-                move_history,
-                is_king_checked,
-            ),
+            PieceType::Pawn => {
+                Pawn::authorized_positions(coordinates, color, board, move_history, is_king_checked)
+            }
+            PieceType::Rook => {
+                Rook::authorized_positions(coordinates, color, board, move_history, is_king_checked)
+            }
             PieceType::Bishop => Bishop::authorized_positions(
-                &coordinates,
+                coordinates,
                 color,
                 board,
                 move_history,
                 is_king_checked,
             ),
             PieceType::Queen => Queen::authorized_positions(
-                &coordinates,
+                coordinates,
                 color,
                 board,
                 move_history,
                 is_king_checked,
             ),
-            PieceType::King => King::authorized_positions(
-                &coordinates,
-                color,
-                board,
-                move_history,
-                is_king_checked,
-            ),
+            PieceType::King => {
+                King::authorized_positions(coordinates, color, board, move_history, is_king_checked)
+            }
             PieceType::Knight => Knight::authorized_positions(
-                &coordinates,
+                coordinates,
                 color,
                 board,
                 move_history,

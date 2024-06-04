@@ -14,7 +14,7 @@ impl Movable for Knight {
     ) -> Vec<Coord> {
         let mut positions: Vec<Coord> = Vec::new();
 
-        let (y, x) = (coordinates[0], coordinates[1]);
+        let (y, x) = (coordinates.row, coordinates.col);
 
         // Generate knight positions in all eight possible L-shaped moves
         let piece_move = [
