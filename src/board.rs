@@ -4,7 +4,7 @@ use crate::{
     utils::{
         col_to_letter, convert_notation_into_position, convert_position_into_notation,
         did_piece_already_move, get_cell_paragraph, get_int_from_char, get_king_coordinates,
-        get_piece_color, get_piece_type, get_player_turn_in_modulo, is_getting_checked, is_valid,
+        get_piece_color, get_piece_type, get_player_turn_in_modulo, is_getting_checked,
     },
 };
 use ratatui::{
@@ -29,6 +29,10 @@ impl Coord {
             row: row.into(),
             col: col.into(),
         }
+    }
+    /// checks whether `self` is valid as a chess board coordinate
+    pub fn is_valid(&self) -> bool {
+        (0..8).contains(&self.col) && (0..8).contains(&self.row)
     }
 }
 
@@ -311,7 +315,7 @@ impl Board {
                 }
             } else {
                 // We already selected a piece
-                if is_valid(&self.cursor_coordinates) {
+                if self.cursor_coordinates.is_valid() {
                     let selected_coords_usize = &self.selected_coordinates.clone();
                     let cursor_coords_usize = &self.cursor_coordinates.clone();
                     self.move_piece_on_the_board(selected_coords_usize, cursor_coords_usize);
@@ -505,7 +509,7 @@ impl Board {
 
     // Move a piece from a cell to another
     pub fn move_piece_on_the_board(&mut self, from: &Coord, to: &Coord) {
-        if !is_valid(from) || !is_valid(to) {
+        if !from.is_valid() || !to.is_valid() {
             return;
         }
         let direction_y: i32 = if self.player_turn == PieceColor::White {

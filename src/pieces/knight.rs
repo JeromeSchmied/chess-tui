@@ -1,9 +1,7 @@
 use super::{Movable, PieceColor, PieceMove, PieceType, Position};
 use crate::board::Coord;
 use crate::constants::DisplayMode;
-use crate::utils::{
-    cleaned_positions, impossible_positions_king_checked, is_cell_color_ally, is_valid,
-};
+use crate::utils::{cleaned_positions, impossible_positions_king_checked, is_cell_color_ally};
 pub struct Knight;
 
 impl Movable for Knight {
@@ -33,7 +31,7 @@ impl Movable for Knight {
         for &(dy, dx) in &piece_move {
             let new_coordinates = Coord::new(y + dy, x + dx);
 
-            if !is_valid(&new_coordinates) {
+            if !new_coordinates.is_valid() {
                 continue;
             }
 

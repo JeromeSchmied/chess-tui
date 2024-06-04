@@ -34,7 +34,7 @@ pub fn get_opposite_color(color: PieceColor) -> PieceColor {
 pub fn cleaned_positions(positions: &[Coord]) -> Vec<Coord> {
     let mut cleaned_array: Vec<Coord> = vec![];
     for position in positions {
-        if is_valid(position) {
+        if position.is_valid() {
             cleaned_array.push(position.clone());
         }
     }
@@ -51,11 +51,6 @@ pub fn is_cell_color_ally(
         Some(cell_color) => cell_color == color,
         None => false, // Treat empty cell as ally
     }
-}
-
-/// checks whether `self` is valid as a chess board coordinate
-pub fn is_valid(coords: &Coord) -> bool {
-    (0..8).contains(&coords.col) && (0..8).contains(&coords.row)
 }
 
 pub fn is_vec_in_array(array: Vec<Coord>, element: &Coord) -> bool {

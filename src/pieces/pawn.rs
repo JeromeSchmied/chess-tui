@@ -3,7 +3,7 @@ use crate::board::Coord;
 use crate::constants::DisplayMode;
 use crate::utils::{
     cleaned_positions, get_latest_move, get_piece_color, impossible_positions_king_checked,
-    is_cell_color_ally, is_valid,
+    is_cell_color_ally,
 };
 
 pub struct Pawn;
@@ -29,7 +29,7 @@ impl Movable for Pawn {
         let new_y_front_one = y + direction;
         let new_coordinates_front_one = Coord::new(new_y_front_one, new_x_front_one);
 
-        if is_valid(&new_coordinates_front_one)
+        if new_coordinates_front_one.is_valid()
             && !allow_move_on_ally_positions
             && get_piece_color(board, &new_coordinates_front_one).is_none()
         {
@@ -41,7 +41,7 @@ impl Movable for Pawn {
             let new_y_front_two = y + direction * 2;
             let new_coordinates_front_two = Coord::new(new_y_front_two, new_x_front_two);
 
-            if is_valid(&new_coordinates_front_two)
+            if new_coordinates_front_two.is_valid()
                 && get_piece_color(board, &new_coordinates_front_two).is_none()
                 && ((color == PieceColor::White && y == 6)
                     || (color == PieceColor::Black && y == 1))
@@ -63,21 +63,21 @@ impl Movable for Pawn {
         // If we allow on ally position we push it anyway
 
         if allow_move_on_ally_positions {
-            if is_valid(&new_coordinates_right) {
+            if new_coordinates_right.is_valid() {
                 positions.push(new_coordinates_right)
             };
-            if is_valid(&new_coordinates_left) {
+            if new_coordinates_left.is_valid() {
                 positions.push(new_coordinates_left)
             };
         } else {
             // else we check if it's an ally piece
-            if is_valid(&new_coordinates_right)
+            if new_coordinates_right.is_valid()
                 && get_piece_color(board, &new_coordinates_right).is_some()
                 && !is_cell_color_ally(board, &new_coordinates_right, color)
             {
                 positions.push(new_coordinates_right);
             }
-            if is_valid(&new_coordinates_left)
+            if new_coordinates_left.is_valid()
                 && get_piece_color(board, &new_coordinates_left).is_some()
                 && !is_cell_color_ally(board, &new_coordinates_left, color)
             {
