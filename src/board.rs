@@ -533,8 +533,8 @@ impl Board {
             1
         };
 
-        let piece_type_from = get_piece_type(self.board, &from);
-        let piece_type_to = get_piece_type(self.board, &to);
+        let piece_type_from = get_piece_type(self.board, from);
+        let piece_type_to = get_piece_type(self.board, to);
 
         // Check if moving a piece
         let piece_type_from = match piece_type_from {
@@ -640,8 +640,8 @@ impl Board {
 
     // Check if the latest move is en passant
     fn is_latest_move_en_passant(&self, from: &Coord, to: &Coord) -> bool {
-        let piece_type_from = get_piece_type(self.board, &from);
-        let piece_type_to = get_piece_type(self.board, &to);
+        let piece_type_from = get_piece_type(self.board, from);
+        let piece_type_to = get_piece_type(self.board, to);
 
         let from_y: i32 = from.row as i32;
         let from_x: i32 = from.col as i32;
@@ -660,8 +660,8 @@ impl Board {
 
     // Check if the latest move is castling
     fn is_latest_move_castling(&self, from: &Coord, to: &Coord) -> bool {
-        let piece_type_from = get_piece_type(self.board, &from);
-        let piece_type_to = get_piece_type(self.board, &to);
+        let piece_type_from = get_piece_type(self.board, from);
+        let piece_type_to = get_piece_type(self.board, to);
 
         let from_x: i32 = from.col as i32;
         let to_x: i32 = to.col as i32;

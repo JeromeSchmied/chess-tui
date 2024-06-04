@@ -27,7 +27,7 @@ impl Movable for Pawn {
         // move one in front
         let new_x_front_one = x;
         let new_y_front_one = y as i8 + direction;
-        let new_coordinates_front_one = Coord::new(new_y_front_one as u8, new_x_front_one as u8);
+        let new_coordinates_front_one = Coord::new(new_y_front_one as u8, new_x_front_one);
 
         if new_coordinates_front_one.is_valid()
             && !allow_move_on_ally_positions
@@ -39,8 +39,7 @@ impl Movable for Pawn {
             // move front a second cell
             let new_x_front_two = x;
             let new_y_front_two = y as i8 + direction * 2;
-            let new_coordinates_front_two =
-                Coord::new(new_y_front_two as u8, new_x_front_two as u8);
+            let new_coordinates_front_two = Coord::new(new_y_front_two as u8, new_x_front_two);
 
             if new_coordinates_front_two.is_valid()
                 && get_piece_color(board, &new_coordinates_front_two).is_none()
