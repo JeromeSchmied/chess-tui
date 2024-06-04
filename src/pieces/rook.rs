@@ -1,4 +1,5 @@
 use super::{Movable, PieceColor, PieceMove, PieceType, Position};
+use crate::board::Coord;
 use crate::constants::DisplayMode;
 use crate::utils::{
     cleaned_positions, get_piece_color, impossible_positions_king_checked, is_cell_color_ally,
@@ -8,45 +9,45 @@ pub struct Rook;
 
 impl Movable for Rook {
     fn piece_move(
-        coordinates: [i8; 2],
+        coordinates: &Coord,
         color: PieceColor,
         board: [[Option<(PieceType, PieceColor)>; 8]; 8],
         allow_move_on_ally_positions: bool,
         _move_history: &[PieceMove],
-    ) -> Vec<Vec<i8>> {
+    ) -> Vec<Coord> {
         // Pawns can only move in one direction depending on their color
-        let mut positions: Vec<Vec<i8>> = vec![];
+        let mut positions = vec![];
 
-        let (y, x) = (coordinates[0], coordinates[1]);
+        let (y, x) = (coordinates.row, coordinates.col);
 
         // RIGHT ROW
         for i in 1..8i8 {
-            let new_x = x + i;
+            let new_x = x as i8 + i;
             let new_y = y;
-            let new_coordinates = [new_y, new_x];
+            let new_coordinates = Coord::new(new_y, new_x as u8);
 
             // Invalid coords
-            if !is_valid(new_coordinates) {
+            if !new_coordinates.is_valid() {
                 break;
             }
 
             // Empty cell
-            if get_piece_color(board, new_coordinates).is_none() {
-                positions.push(new_coordinates.to_vec());
+            if get_piece_color(board, &new_coordinates).is_none() {
+                positions.push(new_coordinates);
                 continue;
             }
             // Ally cell
-            if is_cell_color_ally(board, new_coordinates, color) {
+            if is_cell_color_ally(board, &new_coordinates, color) {
                 if !allow_move_on_ally_positions {
                     break;
                 } else {
-                    positions.push(new_coordinates.to_vec());
+                    positions.push(new_coordinates);
                     break;
                 }
             }
 
             // Enemy cell
-            positions.push(new_coordinates.to_vec());
+            positions.push(new_coordinates);
             if !allow_move_on_ally_positions
                 || !is_piece_opposite_king(board[new_y as usize][new_x as usize], color)
             {
@@ -58,31 +59,31 @@ impl Movable for Rook {
         for i in 1..=8 {
             let new_x = x - i;
             let new_y = y;
-            let new_coordinates = [new_y, new_x];
+            let new_coordinates = Coord::new(new_y, new_x);
 
             // Invalid coords
-            if !is_valid(new_coordinates) {
+            if !new_coordinates.is_valid() {
                 break;
             }
 
             // Empty piece
-            if get_piece_color(board, new_coordinates).is_none() {
-                positions.push(new_coordinates.to_vec());
+            if get_piece_color(board, &new_coordinates).is_none() {
+                positions.push(new_coordinates);
                 continue;
             }
 
             // Ally piece
-            if is_cell_color_ally(board, new_coordinates, color) {
+            if is_cell_color_ally(board, &new_coordinates, color) {
                 if !allow_move_on_ally_positions {
                     break;
                 } else {
-                    positions.push(new_coordinates.to_vec());
+                    positions.push(new_coordinates);
                     break;
                 }
             }
 
             // Enemy cell
-            positions.push(new_coordinates.to_vec());
+            positions.push(new_coordinates);
             if !allow_move_on_ally_positions
                 || !is_piece_opposite_king(board[new_y as usize][new_x as usize], color)
             {
@@ -93,31 +94,31 @@ impl Movable for Rook {
         // BOTTOM ROW
         for i in 1..8i8 {
             let new_x = x;
-            let new_y = y + i;
-            let new_coordinates = [new_y, new_x];
+            let new_y = y as i8 + i;
+            let new_coordinates = Coord::new(new_y as u8, new_x);
 
             // Invalid coords
-            if !is_valid(new_coordinates) {
+            if !new_coordinates.is_valid() {
                 break;
             }
 
             // Empty cell
-            if get_piece_color(board, new_coordinates).is_none() {
-                positions.push(new_coordinates.to_vec());
+            if get_piece_color(board, &new_coordinates).is_none() {
+                positions.push(new_coordinates);
                 continue;
             }
             // Ally cell
-            if is_cell_color_ally(board, new_coordinates, color) {
+            if is_cell_color_ally(board, &new_coordinates, color) {
                 if !allow_move_on_ally_positions {
                     break;
                 } else {
-                    positions.push(new_coordinates.to_vec());
+                    positions.push(new_coordinates);
                     break;
                 }
             }
 
             // Enemy cell
-            positions.push(new_coordinates.to_vec());
+            positions.push(new_coordinates);
 
             if !allow_move_on_ally_positions
                 || !is_piece_opposite_king(board[new_y as usize][new_x as usize], color)
@@ -129,30 +130,30 @@ impl Movable for Rook {
         // UP ROW
         for i in 1..8i8 {
             let new_x = x;
-            let new_y = y - i;
-            let new_coordinates = [new_y, new_x];
+            let new_y = y as i8 - i;
+            let new_coordinates = Coord::new(new_y as u8, new_x);
 
             // Invalid coords
-            if !is_valid(new_coordinates) {
+            if !new_coordinates.is_valid() {
                 break;
             }
 
             // Empty cell
-            if get_piece_color(board, new_coordinates).is_none() {
-                positions.push(new_coordinates.to_vec());
+            if get_piece_color(board, &new_coordinates).is_none() {
+                positions.push(new_coordinates);
                 continue;
             }
             // Ally cell
-            if is_cell_color_ally(board, new_coordinates, color) {
+            if is_cell_color_ally(board, &new_coordinates, color) {
                 if !allow_move_on_ally_positions {
                     break;
                 } else {
-                    positions.push(new_coordinates.to_vec());
+                    positions.push(new_coordinates);
                     break;
                 }
             }
             // Enemy cell
-            positions.push(new_coordinates.to_vec());
+            positions.push(new_coordinates);
 
             if !allow_move_on_ally_positions
                 || !is_piece_opposite_king(board[new_y as usize][new_x as usize], color)
@@ -161,18 +162,18 @@ impl Movable for Rook {
             }
         }
 
-        cleaned_positions(positions)
+        cleaned_positions(&positions)
     }
 }
 
 impl Position for Rook {
     fn authorized_positions(
-        coordinates: [i8; 2],
+        coordinates: &Coord,
         color: PieceColor,
         board: [[Option<(PieceType, PieceColor)>; 8]; 8],
         move_history: &[PieceMove],
         _is_king_checked: bool,
-    ) -> Vec<Vec<i8>> {
+    ) -> Vec<Coord> {
         // If the king is not checked we get then normal moves
         // if the king is checked we clean all the position not resolving the check
         impossible_positions_king_checked(
@@ -185,11 +186,11 @@ impl Position for Rook {
     }
 
     fn protected_positions(
-        coordinates: [i8; 2],
+        coordinates: &Coord,
         color: PieceColor,
         board: [[Option<(PieceType, PieceColor)>; 8]; 8],
         move_history: &[PieceMove],
-    ) -> Vec<Vec<i8>> {
+    ) -> Vec<Coord> {
         Self::piece_move(coordinates, color, board, true, move_history)
     }
 }
@@ -214,7 +215,7 @@ impl Rook {
 #[cfg(test)]
 mod tests {
     use crate::{
-        board::Board,
+        board::{Board, Coord},
         pieces::{rook::Rook, PieceColor, PieceType, Position},
         utils::is_getting_checked,
     };
@@ -244,25 +245,30 @@ mod tests {
         board.set_board(custom_board);
 
         let mut right_positions = vec![
-            vec![7, 4],
-            vec![6, 4],
-            vec![5, 4],
-            vec![3, 4],
-            vec![2, 4],
-            vec![1, 4],
-            vec![0, 4],
-            vec![4, 0],
-            vec![4, 1],
-            vec![4, 2],
-            vec![4, 3],
-            vec![4, 5],
-            vec![4, 6],
-            vec![4, 7],
+            Coord::new(7, 4),
+            Coord::new(6, 4),
+            Coord::new(5, 4),
+            Coord::new(3, 4),
+            Coord::new(2, 4),
+            Coord::new(1, 4),
+            Coord::new(0, 4),
+            Coord::new(4, 0),
+            Coord::new(4, 1),
+            Coord::new(4, 2),
+            Coord::new(4, 3),
+            Coord::new(4, 5),
+            Coord::new(4, 6),
+            Coord::new(4, 7),
         ];
         right_positions.sort();
 
-        let mut positions =
-            Rook::authorized_positions([4, 4], PieceColor::White, board.board, &[], false);
+        let mut positions = Rook::authorized_positions(
+            &Coord::new(4, 4),
+            PieceColor::White,
+            board.board,
+            &[],
+            false,
+        );
         positions.sort();
         assert_eq!(right_positions, positions);
     }
@@ -301,22 +307,27 @@ mod tests {
         board.set_board(custom_board);
 
         let mut right_positions = vec![
-            vec![7, 4],
-            vec![6, 4],
-            vec![5, 4],
-            vec![3, 4],
-            vec![4, 0],
-            vec![4, 1],
-            vec![4, 2],
-            vec![4, 3],
-            vec![4, 5],
-            vec![4, 6],
-            vec![4, 7],
+            Coord::new(7, 4),
+            Coord::new(6, 4),
+            Coord::new(5, 4),
+            Coord::new(3, 4),
+            Coord::new(4, 0),
+            Coord::new(4, 1),
+            Coord::new(4, 2),
+            Coord::new(4, 3),
+            Coord::new(4, 5),
+            Coord::new(4, 6),
+            Coord::new(4, 7),
         ];
         right_positions.sort();
 
-        let mut positions =
-            Rook::authorized_positions([4, 4], PieceColor::White, board.board, &[], false);
+        let mut positions = Rook::authorized_positions(
+            &Coord::new(4, 4),
+            PieceColor::White,
+            board.board,
+            &[],
+            false,
+        );
         positions.sort();
         assert_eq!(right_positions, positions);
     }
@@ -364,19 +375,24 @@ mod tests {
         board.set_board(custom_board);
 
         let mut right_positions = vec![
-            vec![4, 0],
-            vec![4, 1],
-            vec![4, 2],
-            vec![4, 3],
-            vec![4, 5],
-            vec![4, 6],
-            vec![3, 4],
-            vec![5, 4],
+            Coord::new(4, 0),
+            Coord::new(4, 1),
+            Coord::new(4, 2),
+            Coord::new(4, 3),
+            Coord::new(4, 5),
+            Coord::new(4, 6),
+            Coord::new(3, 4),
+            Coord::new(5, 4),
         ];
         right_positions.sort();
 
-        let mut positions =
-            Rook::authorized_positions([4, 4], PieceColor::White, board.board, &[], false);
+        let mut positions = Rook::authorized_positions(
+            &Coord::new(4, 4),
+            PieceColor::White,
+            board.board,
+            &[],
+            false,
+        );
         positions.sort();
 
         assert_eq!(right_positions, positions);
@@ -427,11 +443,11 @@ mod tests {
         let is_king_checked =
             is_getting_checked(board.board, board.player_turn, &board.move_history);
 
-        let mut right_positions = vec![vec![4, 2]];
+        let mut right_positions = vec![Coord::new(4, 2)];
         right_positions.sort();
 
         let mut positions = Rook::authorized_positions(
-            [5, 2],
+            &Coord::new(5, 2),
             PieceColor::Black,
             board.board,
             &[],
@@ -487,11 +503,11 @@ mod tests {
         let is_king_checked =
             is_getting_checked(board.board, board.player_turn, &board.move_history);
 
-        let mut right_positions: Vec<Vec<i8>> = vec![];
+        let mut right_positions: Vec<Coord> = vec![];
         right_positions.sort();
 
         let mut positions = Rook::authorized_positions(
-            [5, 3],
+            &Coord::new(5, 3),
             PieceColor::Black,
             board.board,
             &[],
@@ -546,11 +562,11 @@ mod tests {
         let is_king_checked =
             is_getting_checked(board.board, board.player_turn, &board.move_history);
 
-        let mut right_positions: Vec<Vec<i8>> = vec![vec![2, 4], vec![3, 4]];
+        let mut right_positions: Vec<Coord> = vec![Coord::new(2, 4), Coord::new(3, 4)];
         right_positions.sort();
 
         let mut positions = Rook::authorized_positions(
-            [1, 4],
+            &Coord::new(1, 4),
             PieceColor::Black,
             board.board,
             &[],
