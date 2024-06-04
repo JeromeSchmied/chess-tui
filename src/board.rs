@@ -427,15 +427,23 @@ impl Board {
         result.push_str(" b");
 
         // We add the castles availabilities for black
-        if !did_piece_already_move(&self.move_history, (Some(PieceType::King), [0, 4]))
-            && !is_getting_checked(self.board, PieceColor::Black, &self.move_history)
+        if !did_piece_already_move(
+            &self.move_history,
+            (Some(PieceType::King), Coord::new(0, 4)),
+        ) && !is_getting_checked(self.board, PieceColor::Black, &self.move_history)
         {
             // king side black castle availability
-            if !did_piece_already_move(&self.move_history, (Some(PieceType::Rook), [0, 7])) {
+            if !did_piece_already_move(
+                &self.move_history,
+                (Some(PieceType::Rook), Coord::new(0, 7)),
+            ) {
                 result.push_str(" k");
             }
             // queen side black castle availability
-            if !did_piece_already_move(&self.move_history, (Some(PieceType::Rook), [0, 0])) {
+            if !did_piece_already_move(
+                &self.move_history,
+                (Some(PieceType::Rook), Coord::new(0, 0)),
+            ) {
                 result.push('q');
             }
         } else {

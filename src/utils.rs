@@ -159,11 +159,11 @@ pub fn get_latest_move(move_history: &[PieceMove]) -> Option<PieceMove> {
 
 pub fn did_piece_already_move(
     move_history: &[PieceMove],
-    original_piece: (Option<PieceType>, [i8; 2]),
+    original_piece: (Option<PieceType>, Coord),
 ) -> bool {
     for entry in move_history {
         if Some(entry.piece_type) == original_piece.0
-            && [entry.from_y, entry.from_x] == original_piece.1
+            && Coord::new(entry.from_y, entry.from_x) == original_piece.1
         {
             return true;
         }

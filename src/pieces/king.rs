@@ -58,15 +58,20 @@ impl Position for King {
         let king_line = if color == PieceColor::White { 7 } else { 0 };
 
         // We check the condition for small and big castling
-        if !did_piece_already_move(move_history, (Some(PieceType::King), [king_line, king_x]))
-            && !is_king_checked
+        if !did_piece_already_move(
+            move_history,
+            (Some(PieceType::King), Coord::new(king_line, king_x)),
+        ) && !is_king_checked
         {
             // We check if there is no pieces between tower and king
 
             // Big castle check
             if !did_piece_already_move(
                 move_history,
-                (Some(PieceType::Rook), [king_line, rook_big_castle_x]),
+                (
+                    Some(PieceType::Rook),
+                    Coord::new(king_line, rook_big_castle_x),
+                ),
             ) && King::check_castling_condition(board, color, 0, 3, &checked_cells)
             {
                 positions.push(Coord::new(king_line, 0));
@@ -74,7 +79,10 @@ impl Position for King {
             // Small castle check
             if !did_piece_already_move(
                 move_history,
-                (Some(PieceType::Rook), [king_line, rook_small_castle_x]),
+                (
+                    Some(PieceType::Rook),
+                    Coord::new(king_line, rook_small_castle_x),
+                ),
             ) && King::check_castling_condition(board, color, 5, 7, &checked_cells)
             {
                 positions.push(Coord::new(king_line, 7));
