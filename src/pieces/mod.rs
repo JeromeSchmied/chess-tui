@@ -75,12 +75,12 @@ impl PieceType {
     }
 
     pub fn protected_positions(
-        selected_coordinates: [i8; 2],
+        selected_coordinates: &Coord,
         piece_type: PieceType,
         color: PieceColor,
         board: [[Option<(PieceType, PieceColor)>; 8]; 8],
         move_history: &[PieceMove],
-    ) -> Vec<Vec<i8>> {
+    ) -> Vec<Coord> {
         match piece_type {
             PieceType::Pawn => {
                 Pawn::protected_positions(selected_coordinates, color, board, move_history)

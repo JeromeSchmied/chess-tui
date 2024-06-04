@@ -182,11 +182,11 @@ impl Position for Bishop {
         )
     }
     fn protected_positions(
-        coordinates: [i8; 2],
+        coordinates: &Coord,
         color: PieceColor,
         board: [[Option<(PieceType, PieceColor)>; 8]; 8],
         move_history: &[PieceMove],
-    ) -> Vec<Vec<i8>> {
+    ) -> Vec<Coord> {
         Self::piece_move(coordinates, color, board, true, move_history)
     }
 }
@@ -211,7 +211,7 @@ impl Bishop {
 #[cfg(test)]
 mod tests {
     use crate::{
-        board::Board,
+        board::{Board, Coord},
         pieces::{bishop::Bishop, PieceColor, PieceType, Position},
         utils::is_getting_checked,
     };
@@ -241,24 +241,29 @@ mod tests {
         board.set_board(custom_board);
 
         let mut right_positions = vec![
-            vec![0, 0],
-            vec![1, 1],
-            vec![2, 2],
-            vec![3, 3],
-            vec![5, 5],
-            vec![6, 6],
-            vec![7, 7],
-            vec![1, 7],
-            vec![2, 6],
-            vec![3, 5],
-            vec![5, 3],
-            vec![6, 2],
-            vec![7, 1],
+            Coord::new(0, 0),
+            Coord::new(1, 1),
+            Coord::new(2, 2),
+            Coord::new(3, 3),
+            Coord::new(5, 5),
+            Coord::new(6, 6),
+            Coord::new(7, 7),
+            Coord::new(1, 7),
+            Coord::new(2, 6),
+            Coord::new(3, 5),
+            Coord::new(5, 3),
+            Coord::new(6, 2),
+            Coord::new(7, 1),
         ];
         right_positions.sort();
 
-        let mut positions =
-            Bishop::authorized_positions([4, 4], PieceColor::White, board.board, &[], false);
+        let mut positions = Bishop::authorized_positions(
+            &Coord::new(4, 4),
+            PieceColor::White,
+            board.board,
+            &[],
+            false,
+        );
         positions.sort();
 
         assert_eq!(right_positions, positions);
@@ -298,22 +303,27 @@ mod tests {
         board.set_board(custom_board);
 
         let mut right_positions = vec![
-            vec![0, 0],
-            vec![1, 1],
-            vec![2, 2],
-            vec![3, 3],
-            vec![5, 5],
-            vec![6, 6],
-            vec![7, 7],
-            vec![3, 5],
-            vec![5, 3],
-            vec![6, 2],
-            vec![7, 1],
+            Coord::new(0, 0),
+            Coord::new(1, 1),
+            Coord::new(2, 2),
+            Coord::new(3, 3),
+            Coord::new(5, 5),
+            Coord::new(6, 6),
+            Coord::new(7, 7),
+            Coord::new(3, 5),
+            Coord::new(5, 3),
+            Coord::new(6, 2),
+            Coord::new(7, 1),
         ];
         right_positions.sort();
 
-        let mut positions =
-            Bishop::authorized_positions([4, 4], PieceColor::White, board.board, &[], false);
+        let mut positions = Bishop::authorized_positions(
+            &Coord::new(4, 4),
+            PieceColor::White,
+            board.board,
+            &[],
+            false,
+        );
         positions.sort();
 
         assert_eq!(right_positions, positions);
@@ -371,18 +381,23 @@ mod tests {
         board.set_board(custom_board);
 
         let mut right_positions = vec![
-            vec![3, 3],
-            vec![5, 5],
-            vec![3, 5],
-            vec![2, 6],
-            vec![1, 7],
-            vec![5, 3],
-            vec![6, 2],
+            Coord::new(3, 3),
+            Coord::new(5, 5),
+            Coord::new(3, 5),
+            Coord::new(2, 6),
+            Coord::new(1, 7),
+            Coord::new(5, 3),
+            Coord::new(6, 2),
         ];
         right_positions.sort();
 
-        let mut positions =
-            Bishop::authorized_positions([4, 4], PieceColor::White, board.board, &[], false);
+        let mut positions = Bishop::authorized_positions(
+            &Coord::new(4, 4),
+            PieceColor::White,
+            board.board,
+            &[],
+            false,
+        );
         positions.sort();
 
         assert_eq!(right_positions, positions);
@@ -433,11 +448,11 @@ mod tests {
         let is_king_checked =
             is_getting_checked(board.board, board.player_turn, &board.move_history);
 
-        let mut right_positions = vec![vec![4, 4]];
+        let mut right_positions = vec![Coord::new(4, 4)];
         right_positions.sort();
 
         let mut positions = Bishop::authorized_positions(
-            [5, 5],
+            &Coord::new(5, 5),
             PieceColor::Black,
             board.board,
             &[],
@@ -493,11 +508,11 @@ mod tests {
         let is_king_checked =
             is_getting_checked(board.board, board.player_turn, &board.move_history);
 
-        let mut right_positions: Vec<Vec<i8>> = vec![];
+        let mut right_positions: Vec<Coord> = vec![];
         right_positions.sort();
 
         let mut positions = Bishop::authorized_positions(
-            [5, 6],
+            &Coord::new(5, 6),
             PieceColor::Black,
             board.board,
             &[],
@@ -553,11 +568,11 @@ mod tests {
         let is_king_checked =
             is_getting_checked(board.board, board.player_turn, &board.move_history);
 
-        let mut right_positions: Vec<Vec<i8>> = vec![vec![2, 6], vec![3, 7]];
+        let mut right_positions = vec![Coord::new(2, 6), Coord::new(3, 7)];
         right_positions.sort();
 
         let mut positions = Bishop::authorized_positions(
-            [1, 5],
+            &Coord::new(1, 5),
             PieceColor::Black,
             board.board,
             &[],

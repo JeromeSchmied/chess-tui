@@ -1,6 +1,6 @@
 use crate::{
     board::{Board, Coord},
-    constants::{DisplayMode, UNDEFINED_POSITION},
+    constants::DisplayMode,
     pieces::{PieceColor, PieceMove, PieceType},
 };
 use ratatui::{
@@ -67,18 +67,18 @@ pub fn get_all_protected_cells(
     board: [[Option<(PieceType, PieceColor)>; 8]; 8],
     player_turn: PieceColor,
     move_history: &[PieceMove],
-) -> Vec<Vec<i8>> {
-    let mut check_cells: Vec<Vec<i8>> = vec![];
-    for i in 0..8i8 {
-        for j in 0..8i8 {
-            if get_piece_color(board, [i, j]) == Some(player_turn) {
+) -> Vec<Coord> {
+    let mut check_cells: Vec<Coord> = vec![];
+    for i in 0..8u8 {
+        for j in 0..8u8 {
+            if get_piece_color(board, &Coord::new(i, j)) == Some(player_turn) {
                 continue;
             }
             // get the current cell piece color and type protecting positions
-            if let Some(piece_color) = get_piece_color(board, [i, j]) {
-                if let Some(piece_type) = get_piece_type(board, [i, j]) {
+            if let Some(piece_color) = get_piece_color(board, &Coord::new(i, j)) {
+                if let Some(piece_type) = get_piece_type(board, &Coord::new(i, j)) {
                     check_cells.extend(PieceType::protected_positions(
-                        [i, j],
+                        &Coord::new(i, j),
                         piece_type,
                         piece_color,
                         board,
@@ -183,17 +183,17 @@ pub fn did_piece_already_move(
 pub fn get_king_coordinates(
     board: [[Option<(PieceType, PieceColor)>; 8]; 8],
     player_turn: PieceColor,
-) -> [i8; 2] {
-    for i in 0..8i32 {
-        for j in 0..8i32 {
+) -> Coord {
+    for i in 0..8u8 {
+        for j in 0..8u8 {
             if let Some((piece_type, piece_color)) = board[i as usize][j as usize] {
                 if piece_type == PieceType::King && piece_color == player_turn {
-                    return [i as i8, j as i8];
+                    return Coord::new(i, j);
                 }
             }
         }
     }
-    [UNDEFINED_POSITION, UNDEFINED_POSITION]
+    Coord::undefined()
 }
 
 // Is getting checked
@@ -259,11 +259,11 @@ pub fn color_to_ratatui_enum(piece_color: Option<PieceColor>) -> Color {
     }
 }
 
-pub fn get_cell_paragraph(
-    board: &Board,
-    cell_coordinates: &Coord,
+pub fn get_cell_paragraph<'a>(
+    board: &'a Board,
+    cell_coordinates: &'a Coord,
     bounding_rect: Rect,
-) -> Paragraph<'_> {
+) -> Paragraph<'a> {
     // Get piece and color
     let piece_color = get_piece_color(board.board, cell_coordinates);
     let piece_type = get_piece_type(board.board, cell_coordinates);
