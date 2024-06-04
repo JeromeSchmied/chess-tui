@@ -3,7 +3,7 @@ use crate::board::Coord;
 use crate::constants::DisplayMode;
 use crate::utils::{
     cleaned_positions, get_piece_color, impossible_positions_king_checked, is_cell_color_ally,
-    is_piece_opposite_king,
+    is_piece_opposite_king, is_valid,
 };
 pub struct Bishop;
 
@@ -21,21 +21,13 @@ impl Movable for Bishop {
         let x = coordinates.col;
 
         // for diagonal from piece to top left
-        for i in 1..8u8 {
-            let new_x = if let Some(new_x) = x.checked_sub(i) {
-                new_x
-            } else {
-                break;
-            };
-            let new_y = if let Some(new_y) = y.checked_sub(i) {
-                new_y
-            } else {
-                break;
-            };
+        for i in 1..8i8 {
+            let new_x = x - i;
+            let new_y = y - i;
             let new_coordinates = Coord::new(new_y, new_x);
 
             // Invalid coords
-            if !new_coordinates.is_valid() {
+            if !is_valid(&new_coordinates) {
                 break;
             }
 
@@ -64,14 +56,14 @@ impl Movable for Bishop {
         }
 
         // for diagonal from piece to bottom right
-        for i in 1..8u8 {
+        for i in 1..8i8 {
             let new_x = x + i;
             let new_y = y + i;
 
             let new_coordinates = Coord::new(new_y, new_x);
 
             // Invalid coords
-            if !new_coordinates.is_valid() {
+            if !is_valid(&new_coordinates) {
                 break;
             }
 
@@ -100,17 +92,13 @@ impl Movable for Bishop {
         }
 
         // for diagonal from piece to bottom left
-        for i in 1..8u8 {
-            let new_x = if let Some(new_x) = x.checked_sub(i) {
-                new_x
-            } else {
-                break;
-            };
+        for i in 1..8i8 {
+            let new_x = x - i;
             let new_y = y + i;
             let new_coordinates = Coord::new(new_y, new_x);
 
             // Invalid coords
-            if !new_coordinates.is_valid() {
+            if !is_valid(&new_coordinates) {
                 break;
             }
 
@@ -139,17 +127,13 @@ impl Movable for Bishop {
         }
 
         // for diagonal from piece to top right
-        for i in 1..8u8 {
+        for i in 1..8i8 {
             let new_x = x + i;
-            let new_y = if let Some(new_y) = y.checked_sub(i) {
-                new_y
-            } else {
-                break;
-            };
+            let new_y = y - i;
             let new_coordinates = Coord::new(new_y, new_x);
 
             // Invalid coords
-            if !new_coordinates.is_valid() {
+            if !is_valid(&new_coordinates) {
                 break;
             }
 

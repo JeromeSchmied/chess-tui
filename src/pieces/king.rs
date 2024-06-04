@@ -3,7 +3,7 @@ use crate::board::Coord;
 use crate::constants::DisplayMode;
 use crate::utils::{
     cleaned_positions, did_piece_already_move, get_all_protected_cells, get_piece_type,
-    is_cell_color_ally, is_vec_in_array,
+    is_cell_color_ally, is_valid, is_vec_in_array,
 };
 pub struct King;
 
@@ -21,18 +21,18 @@ impl Movable for King {
 
         // can move on a complete row
         // Generate positions in all eight possible directions
-        for &dy in &[-1i8, 0, 1] {
-            for &dx in &[-1i8, 0, 1] {
+        for &dy in &[-1, 0, 1] {
+            for &dx in &[-1, 0, 1] {
                 // Skip the case where both dx and dy are zero (the current position)
-                let new_x = x as i8 + dx;
-                let new_y = y as i8 + dy;
+                let new_x = x + dx;
+                let new_y = y + dy;
 
-                let new_coordinates = Coord::new(new_y as u8, new_x as u8);
-                if new_coordinates.is_valid()
+                let new_coordinates = Coord::new(new_y, new_x);
+                if is_valid(&new_coordinates)
                     && (!is_cell_color_ally(board, &new_coordinates, color)
                         || allow_move_on_ally_positions)
                 {
-                    positions.push(Coord::new((y as i8 + dy) as u8, (x as i8 + dx) as u8));
+                    positions.push(Coord::new(y + dy, x + dx));
                 }
             }
         }
@@ -69,7 +69,7 @@ impl Position for King {
                 (Some(PieceType::Rook), [king_line, rook_big_castle_x]),
             ) && King::check_castling_condition(board, color, 0, 3, &checked_cells)
             {
-                positions.push(Coord::new(king_line as u8, 0));
+                positions.push(Coord::new(king_line, 0));
             }
             // Small castle check
             if !did_piece_already_move(
@@ -77,7 +77,7 @@ impl Position for King {
                 (Some(PieceType::Rook), [king_line, rook_small_castle_x]),
             ) && King::check_castling_condition(board, color, 5, 7, &checked_cells)
             {
-                positions.push(Coord::new(king_line as u8, 7));
+                positions.push(Coord::new(king_line, 7));
             }
         }
 
@@ -133,7 +133,7 @@ impl King {
         let mut valid_for_castling = true;
 
         for i in start..=end {
-            let new_coordinates = Coord::new(king_line, i as u8);
+            let new_coordinates = Coord::new(king_line, i);
 
             if is_vec_in_array(checked_cells.to_owned(), &new_coordinates) {
                 valid_for_castling = false;

@@ -1,7 +1,9 @@
 use super::{Movable, PieceColor, PieceMove, PieceType, Position};
 use crate::board::Coord;
 use crate::constants::DisplayMode;
-use crate::utils::{cleaned_positions, impossible_positions_king_checked, is_cell_color_ally};
+use crate::utils::{
+    cleaned_positions, impossible_positions_king_checked, is_cell_color_ally, is_valid,
+};
 pub struct Knight;
 
 impl Movable for Knight {
@@ -17,7 +19,7 @@ impl Movable for Knight {
         let (y, x) = (coordinates.row, coordinates.col);
 
         // Generate knight positions in all eight possible L-shaped moves
-        let piece_move: [(i8, i8); 8] = [
+        let piece_move = [
             (-2, -1),
             (-2, 1),
             (-1, -2),
@@ -29,9 +31,9 @@ impl Movable for Knight {
         ];
 
         for &(dy, dx) in &piece_move {
-            let new_coordinates = Coord::new((y as i8 + dy) as u8, (x as i8 + dx) as u8);
+            let new_coordinates = Coord::new(y + dy, x + dx);
 
-            if !new_coordinates.is_valid() {
+            if !is_valid(&new_coordinates) {
                 continue;
             }
 

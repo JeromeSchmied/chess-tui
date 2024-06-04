@@ -4,7 +4,7 @@ use crate::{
     utils::{
         col_to_letter, convert_notation_into_position, convert_position_into_notation,
         did_piece_already_move, get_cell_paragraph, get_int_from_char, get_king_coordinates,
-        get_piece_color, get_piece_type, get_player_turn_in_modulo, is_getting_checked,
+        get_piece_color, get_piece_type, get_player_turn_in_modulo, is_getting_checked, is_valid,
     },
 };
 use ratatui::{
@@ -19,32 +19,16 @@ use uci::Engine;
 #[derive(PartialEq, Clone, Debug, Eq, PartialOrd, Ord)]
 pub struct Coord {
     /// row, line, y
-    pub row: u8,
+    pub row: i8,
     /// column, x
-    pub col: u8,
+    pub col: i8,
 }
 impl Coord {
-    pub fn new<T: Into<u8>>(row: T, col: T) -> Self {
+    pub fn new<T: Into<i8>>(row: T, col: T) -> Self {
         Coord {
             row: row.into(),
             col: col.into(),
         }
-    }
-    /// is undefined
-    pub fn is_undefined(&self) -> bool {
-        *self == Self::undefined()
-    }
-    /// not yet set, has to later be set before using
-    pub fn undefined() -> Self {
-        Coord {
-            row: UNDEFINED_POSITION,
-            col: UNDEFINED_POSITION,
-        }
-    }
-
-    /// checks whether `self` is valid as a chess board coordinate
-    pub fn is_valid(&self) -> bool {
-        (0..8).contains(&self.col) && (0..8).contains(&self.col)
     }
 }
 
@@ -116,9 +100,9 @@ impl Default for Board {
                 ],
             ],
             cursor_coordinates: Coord::new(4, 4),
-            selected_coordinates: Coord::undefined(),
+            selected_coordinates: Coord::new(UNDEFINED_POSITION, UNDEFINED_POSITION),
             selected_piece_cursor: 0,
-            old_cursor_position: Coord::undefined(),
+            old_cursor_position: Coord::new(UNDEFINED_POSITION, UNDEFINED_POSITION),
             player_turn: PieceColor::White,
             move_history: vec![],
             is_draw: false,
@@ -142,9 +126,9 @@ impl Board {
         Self {
             board,
             cursor_coordinates: Coord::new(4, 4),
-            selected_coordinates: Coord::undefined(),
+            selected_coordinates: Coord::new(UNDEFINED_POSITION, UNDEFINED_POSITION),
             selected_piece_cursor: 0,
-            old_cursor_position: Coord::undefined(),
+            old_cursor_position: Coord::new(UNDEFINED_POSITION, UNDEFINED_POSITION),
             player_turn,
             move_history,
             is_draw: false,
@@ -178,7 +162,8 @@ impl Board {
 
     // Check if a cell has been selected
     fn is_cell_selected(&self) -> bool {
-        !self.selected_coordinates.is_undefined()
+        self.selected_coordinates.row != UNDEFINED_POSITION
+            && self.selected_coordinates.col != UNDEFINED_POSITION
     }
 
     fn get_authorized_positions(
@@ -257,7 +242,8 @@ impl Board {
     // Method to unselect a cell
     pub fn unselect_cell(&mut self) {
         if self.is_cell_selected() {
-            self.selected_coordinates = Coord::undefined();
+            self.selected_coordinates.row = UNDEFINED_POSITION;
+            self.selected_coordinates.col = UNDEFINED_POSITION;
             self.selected_piece_cursor = 0;
             self.cursor_coordinates = self.old_cursor_position.clone()
         }
@@ -292,7 +278,7 @@ impl Board {
                 self.cursor_coordinates = position.clone();
             }
         } else {
-            self.cursor_coordinates = Coord::undefined();
+            self.cursor_coordinates = Coord::new(UNDEFINED_POSITION, UNDEFINED_POSITION);
         }
     }
 
@@ -325,7 +311,7 @@ impl Board {
                 }
             } else {
                 // We already selected a piece
-                if self.cursor_coordinates.is_valid() {
+                if is_valid(&self.cursor_coordinates) {
                     let selected_coords_usize = &self.selected_coordinates.clone();
                     let cursor_coords_usize = &self.cursor_coordinates.clone();
                     self.move_piece_on_the_board(selected_coords_usize, cursor_coords_usize);
@@ -386,10 +372,7 @@ impl Board {
         let to_y = get_int_from_char(converted_move.chars().nth(2));
         let to_x = get_int_from_char(converted_move.chars().nth(3));
 
-        self.move_piece_on_the_board(
-            &Coord::new(from_y as u8, from_x as u8),
-            &Coord::new(to_y as u8, to_x as u8),
-        );
+        self.move_piece_on_the_board(&Coord::new(from_y, from_x), &Coord::new(to_y, to_x));
     }
 
     // Convert the history and game status to a FEN string
@@ -397,8 +380,8 @@ impl Board {
         let mut result = String::new();
 
         // We loop through the board and convert it to a FEN string
-        for i in 0..8u8 {
-            for j in 0..8u8 {
+        for i in 0..8i8 {
+            for j in 0..8i8 {
                 // We get the piece type and color
                 let (piece_type, piece_color) = (
                     get_piece_type(self.board, &Coord::new(i, j)),
@@ -508,10 +491,8 @@ impl Board {
                 _ => unreachable!("Promotion cursor out of boundaries"),
             };
 
-            let current_piece_color = get_piece_color(
-                self.board,
-                &Coord::new(last_move.to_y as u8, last_move.to_x as u8),
-            );
+            let current_piece_color =
+                get_piece_color(self.board, &Coord::new(last_move.to_y, last_move.to_x));
             if let Some(piece_color) = current_piece_color {
                 // we replace the piece by the new piece type
                 self.board[last_move.to_y as usize][last_move.to_x as usize] =
@@ -524,7 +505,7 @@ impl Board {
 
     // Move a piece from a cell to another
     pub fn move_piece_on_the_board(&mut self, from: &Coord, to: &Coord) {
-        if !from.is_valid() || !to.is_valid() {
+        if !is_valid(from) || !is_valid(to) {
             return;
         }
         let direction_y: i32 = if self.player_turn == PieceColor::White {
@@ -611,10 +592,10 @@ impl Board {
         // We store it in the history
         self.move_history.push(PieceMove {
             piece_type: piece_type_from,
-            from_y: from.row as i8,
-            from_x: from.col as i8,
-            to_y: to.row as i8,
-            to_x: to.col as i8,
+            from_y: from.row,
+            from_x: from.col,
+            to_y: to.row,
+            to_x: to.col,
         });
     }
 
@@ -629,7 +610,7 @@ impl Board {
                         possible_moves.extend(self.get_authorized_positions(
                             Some(piece_type),
                             Some(piece_color),
-                            &Coord::new(i as u8, j as u8),
+                            &Coord::new(i as i8, j as i8),
                         ))
                     }
                 }
@@ -676,14 +657,12 @@ impl Board {
     // Check if the latest move is a promotion
     fn is_latest_move_promotion(&self) -> bool {
         if let Some(last_move) = self.move_history.last() {
-            if let Some(piece_type_to) = get_piece_type(
-                self.board,
-                &Coord::new(last_move.to_y as u8, last_move.to_x as u8),
-            ) {
-                if let Some(piece_color) = get_piece_color(
-                    self.board,
-                    &Coord::new(last_move.to_y as u8, last_move.to_x as u8),
-                ) {
+            if let Some(piece_type_to) =
+                get_piece_type(self.board, &Coord::new(last_move.to_y, last_move.to_x))
+            {
+                if let Some(piece_color) =
+                    get_piece_color(self.board, &Coord::new(last_move.to_y, last_move.to_x))
+                {
                     let last_row = if piece_color == PieceColor::White {
                         0
                     } else {
@@ -759,7 +738,7 @@ impl Board {
             .split(area);
 
         // For each line we set 8 layout
-        for i in 0..8u8 {
+        for i in 0..8i8 {
             let lines = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints(
@@ -778,7 +757,7 @@ impl Board {
                     .as_ref(),
                 )
                 .split(columns[i as usize + 1]);
-            for j in 0..8u8 {
+            for j in 0..8i8 {
                 // Color of the cell to draw the board
                 let mut cell_color: Color = if (i + j) % 2 == 0 { WHITE } else { BLACK };
 

@@ -1,6 +1,6 @@
 use crate::{
     board::{Board, Coord},
-    constants::DisplayMode,
+    constants::{DisplayMode, UNDEFINED_POSITION},
     pieces::{PieceColor, PieceMove, PieceType},
 };
 use ratatui::{
@@ -34,7 +34,7 @@ pub fn get_opposite_color(color: PieceColor) -> PieceColor {
 pub fn cleaned_positions(positions: &[Coord]) -> Vec<Coord> {
     let mut cleaned_array: Vec<Coord> = vec![];
     for position in positions {
-        if position.is_valid() {
+        if is_valid(position) {
             cleaned_array.push(position.clone());
         }
     }
@@ -53,6 +53,11 @@ pub fn is_cell_color_ally(
     }
 }
 
+/// checks whether `self` is valid as a chess board coordinate
+pub fn is_valid(coords: &Coord) -> bool {
+    (0..8).contains(&coords.col) && (0..8).contains(&coords.row)
+}
+
 pub fn is_vec_in_array(array: Vec<Coord>, element: &Coord) -> bool {
     array.contains(element)
 }
@@ -64,8 +69,8 @@ pub fn get_all_protected_cells(
     move_history: &[PieceMove],
 ) -> Vec<Coord> {
     let mut check_cells: Vec<Coord> = vec![];
-    for i in 0..8u8 {
-        for j in 0..8u8 {
+    for i in 0..8i8 {
+        for j in 0..8i8 {
             if get_piece_color(board, &Coord::new(i, j)) == Some(player_turn) {
                 continue;
             }
@@ -179,16 +184,16 @@ pub fn get_king_coordinates(
     board: [[Option<(PieceType, PieceColor)>; 8]; 8],
     player_turn: PieceColor,
 ) -> Coord {
-    for i in 0..8u8 {
-        for j in 0..8u8 {
+    for i in 0..8i32 {
+        for j in 0..8i32 {
             if let Some((piece_type, piece_color)) = board[i as usize][j as usize] {
                 if piece_type == PieceType::King && piece_color == player_turn {
-                    return Coord::new(i, j);
+                    return Coord::new(i as i8, j as i8);
                 }
             }
         }
     }
-    Coord::undefined()
+    Coord::new(UNDEFINED_POSITION, UNDEFINED_POSITION)
 }
 
 // Is getting checked

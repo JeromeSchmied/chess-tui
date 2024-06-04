@@ -3,7 +3,7 @@ use crate::board::Coord;
 use crate::constants::DisplayMode;
 use crate::utils::{
     cleaned_positions, get_latest_move, get_piece_color, impossible_positions_king_checked,
-    is_cell_color_ally,
+    is_cell_color_ally, is_valid,
 };
 
 pub struct Pawn;
@@ -18,7 +18,7 @@ impl Movable for Pawn {
     ) -> Vec<Coord> {
         // Pawns can only move in one direction depending of their color
         // -1 if they are white (go up) +1 if they are black (go down)
-        let direction: i8 = if color == PieceColor::White { -1 } else { 1 };
+        let direction = if color == PieceColor::White { -1 } else { 1 };
 
         let mut positions: Vec<Coord> = vec![];
 
@@ -26,10 +26,10 @@ impl Movable for Pawn {
 
         // move one in front
         let new_x_front_one = x;
-        let new_y_front_one = y as i8 + direction;
-        let new_coordinates_front_one = Coord::new(new_y_front_one as u8, new_x_front_one);
+        let new_y_front_one = y + direction;
+        let new_coordinates_front_one = Coord::new(new_y_front_one, new_x_front_one);
 
-        if new_coordinates_front_one.is_valid()
+        if is_valid(&new_coordinates_front_one)
             && !allow_move_on_ally_positions
             && get_piece_color(board, &new_coordinates_front_one).is_none()
         {
@@ -38,10 +38,10 @@ impl Movable for Pawn {
 
             // move front a second cell
             let new_x_front_two = x;
-            let new_y_front_two = y as i8 + direction * 2;
-            let new_coordinates_front_two = Coord::new(new_y_front_two as u8, new_x_front_two);
+            let new_y_front_two = y + direction * 2;
+            let new_coordinates_front_two = Coord::new(new_y_front_two, new_x_front_two);
 
-            if new_coordinates_front_two.is_valid()
+            if is_valid(&new_coordinates_front_two)
                 && get_piece_color(board, &new_coordinates_front_two).is_none()
                 && ((color == PieceColor::White && y == 6)
                     || (color == PieceColor::Black && y == 1))
@@ -52,36 +52,32 @@ impl Movable for Pawn {
 
         // check for enemy piece on the right
         let new_x_right = x + 1;
-        let new_y_right = y as i8 + direction;
-        let new_coordinates_right = Coord::new(new_y_right as u8, new_x_right);
+        let new_y_right = y + direction;
+        let new_coordinates_right = Coord::new(new_y_right, new_x_right);
 
         // check for enemy piece on the left
-        let new_x_left = x.checked_sub(1);
-        let new_y_left = y as i8 + direction;
-        let new_coordinates_left = if let Some(new_x_left) = new_x_left {
-            Coord::new(new_y_left as u8, new_x_left)
-        } else {
-            Coord::undefined()
-        };
+        let new_x_left = x - 1;
+        let new_y_left = y + direction;
+        let new_coordinates_left = Coord::new(new_y_left, new_x_left);
 
         // If we allow on ally position we push it anyway
 
         if allow_move_on_ally_positions {
-            if new_coordinates_right.is_valid() {
+            if is_valid(&new_coordinates_right) {
                 positions.push(new_coordinates_right)
             };
-            if new_coordinates_left.is_valid() {
+            if is_valid(&new_coordinates_left) {
                 positions.push(new_coordinates_left)
             };
         } else {
             // else we check if it's an ally piece
-            if new_coordinates_right.is_valid()
+            if is_valid(&new_coordinates_right)
                 && get_piece_color(board, &new_coordinates_right).is_some()
                 && !is_cell_color_ally(board, &new_coordinates_right, color)
             {
                 positions.push(new_coordinates_right);
             }
-            if new_coordinates_left.is_valid()
+            if is_valid(&new_coordinates_left)
                 && get_piece_color(board, &new_coordinates_left).is_some()
                 && !is_cell_color_ally(board, &new_coordinates_left, color)
             {
@@ -107,12 +103,12 @@ impl Movable for Pawn {
             // and if the current pawn is next to this pawn latest position
             if latest_move.from_y == valid_y_start
                 && number_of_cells_move == 2
-                && y as i8 == latest_move.to_y
-                && (x as i8 == latest_move.to_x - 1 || x as i8 == latest_move.to_x + 1)
+                && y == latest_move.to_y
+                && (x == latest_move.to_x - 1 || x == latest_move.to_x + 1)
             {
                 let new_y = latest_move.from_y + -direction;
                 let new_x = latest_move.from_x;
-                positions.push(Coord::new(new_y as u8, new_x as u8));
+                positions.push(Coord::new(new_y, new_x));
             }
         }
 

@@ -3,7 +3,7 @@ use crate::board::Coord;
 use crate::constants::DisplayMode;
 use crate::utils::{
     cleaned_positions, get_piece_color, impossible_positions_king_checked, is_cell_color_ally,
-    is_piece_opposite_king,
+    is_piece_opposite_king, is_valid,
 };
 pub struct Rook;
 
@@ -22,12 +22,12 @@ impl Movable for Rook {
 
         // RIGHT ROW
         for i in 1..8i8 {
-            let new_x = x as i8 + i;
+            let new_x = x + i;
             let new_y = y;
-            let new_coordinates = Coord::new(new_y, new_x as u8);
+            let new_coordinates = Coord::new(new_y, new_x);
 
             // Invalid coords
-            if !new_coordinates.is_valid() {
+            if !is_valid(&new_coordinates) {
                 break;
             }
 
@@ -57,16 +57,12 @@ impl Movable for Rook {
 
         // LEFT ROW
         for i in 1..=8 {
-            let new_x = if let Some(new_x) = x.checked_sub(i) {
-                new_x
-            } else {
-                break;
-            };
+            let new_x = x - i;
             let new_y = y;
             let new_coordinates = Coord::new(new_y, new_x);
 
             // Invalid coords
-            if !new_coordinates.is_valid() {
+            if !is_valid(&new_coordinates) {
                 break;
             }
 
@@ -98,11 +94,11 @@ impl Movable for Rook {
         // BOTTOM ROW
         for i in 1..8i8 {
             let new_x = x;
-            let new_y = y as i8 + i;
-            let new_coordinates = Coord::new(new_y as u8, new_x);
+            let new_y = y + i;
+            let new_coordinates = Coord::new(new_y, new_x);
 
             // Invalid coords
-            if !new_coordinates.is_valid() {
+            if !is_valid(&new_coordinates) {
                 break;
             }
 
@@ -134,11 +130,11 @@ impl Movable for Rook {
         // UP ROW
         for i in 1..8i8 {
             let new_x = x;
-            let new_y = y as i8 - i;
-            let new_coordinates = Coord::new(new_y as u8, new_x);
+            let new_y = y - i;
+            let new_coordinates = Coord::new(new_y, new_x);
 
             // Invalid coords
-            if !new_coordinates.is_valid() {
+            if !is_valid(&new_coordinates) {
                 break;
             }
 
