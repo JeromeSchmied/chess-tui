@@ -175,11 +175,11 @@ pub fn get_king_coordinates(
     board: [[Option<(PieceType, PieceColor)>; 8]; 8],
     player_turn: PieceColor,
 ) -> Coord {
-    for i in 0..8i32 {
-        for j in 0..8i32 {
+    for i in 0..8i8 {
+        for j in 0..8i8 {
             if let Some((piece_type, piece_color)) = board[i as usize][j as usize] {
                 if piece_type == PieceType::King && piece_color == player_turn {
-                    return Coord::new(i as i8, j as i8);
+                    return Coord::new(i, j);
                 }
             }
         }
