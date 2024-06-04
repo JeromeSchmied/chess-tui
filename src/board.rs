@@ -30,6 +30,12 @@ impl Coord {
             col: col.into(),
         }
     }
+    pub fn undefined() -> Self {
+        Coord {
+            row: UNDEFINED_POSITION as i8,
+            col: UNDEFINED_POSITION as i8,
+        }
+    }
     /// checks whether `self` is valid as a chess board coordinate
     pub fn is_valid(&self) -> bool {
         (0..8).contains(&self.col) && (0..8).contains(&self.row)
@@ -104,9 +110,9 @@ impl Default for Board {
                 ],
             ],
             cursor_coordinates: Coord::new(4, 4),
-            selected_coordinates: Coord::new(UNDEFINED_POSITION, UNDEFINED_POSITION),
+            selected_coordinates: Coord::undefined(),
             selected_piece_cursor: 0,
-            old_cursor_position: Coord::new(UNDEFINED_POSITION, UNDEFINED_POSITION),
+            old_cursor_position: Coord::undefined(),
             player_turn: PieceColor::White,
             move_history: vec![],
             is_draw: false,
@@ -130,9 +136,9 @@ impl Board {
         Self {
             board,
             cursor_coordinates: Coord::new(4, 4),
-            selected_coordinates: Coord::new(UNDEFINED_POSITION, UNDEFINED_POSITION),
+            selected_coordinates: Coord::undefined(),
             selected_piece_cursor: 0,
-            old_cursor_position: Coord::new(UNDEFINED_POSITION, UNDEFINED_POSITION),
+            old_cursor_position: Coord::undefined(),
             player_turn,
             move_history,
             is_draw: false,
@@ -166,8 +172,8 @@ impl Board {
 
     // Check if a cell has been selected
     fn is_cell_selected(&self) -> bool {
-        self.selected_coordinates.row != UNDEFINED_POSITION
-            && self.selected_coordinates.col != UNDEFINED_POSITION
+        self.selected_coordinates.row != UNDEFINED_POSITION as i8
+            && self.selected_coordinates.col != UNDEFINED_POSITION as i8
     }
 
     fn get_authorized_positions(
@@ -246,8 +252,7 @@ impl Board {
     // Method to unselect a cell
     pub fn unselect_cell(&mut self) {
         if self.is_cell_selected() {
-            self.selected_coordinates.row = UNDEFINED_POSITION;
-            self.selected_coordinates.col = UNDEFINED_POSITION;
+            self.selected_coordinates = Coord::undefined();
             self.selected_piece_cursor = 0;
             self.cursor_coordinates = self.old_cursor_position.clone()
         }
@@ -282,7 +287,7 @@ impl Board {
                 self.cursor_coordinates = position.clone();
             }
         } else {
-            self.cursor_coordinates = Coord::new(UNDEFINED_POSITION, UNDEFINED_POSITION);
+            self.cursor_coordinates = Coord::undefined();
         }
     }
 

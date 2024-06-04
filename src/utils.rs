@@ -1,6 +1,6 @@
 use crate::{
     board::{Board, Coord},
-    constants::{DisplayMode, UNDEFINED_POSITION},
+    constants::DisplayMode,
     pieces::{PieceColor, PieceMove, PieceType},
 };
 use ratatui::{
@@ -184,7 +184,7 @@ pub fn get_king_coordinates(
             }
         }
     }
-    Coord::new(UNDEFINED_POSITION, UNDEFINED_POSITION)
+    Coord::undefined()
 }
 
 // Is getting checked
