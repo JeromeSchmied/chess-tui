@@ -30,6 +30,7 @@ impl Coord {
             col: col.into(),
         }
     }
+    /// not yet set position, has to later be set and only used afterwards
     pub fn undefined() -> Self {
         Coord {
             row: UNDEFINED_POSITION as i8,
