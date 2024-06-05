@@ -96,21 +96,21 @@ impl Movable for Pawn {
 
         // We check for en passant
         if let Some(latest_move) = get_latest_move(move_history) {
-            let valid_y_start: u8;
-            let number_of_cells_move: u8;
+            let valid_y_start: i8;
+            let number_of_cells_move: i8;
 
             if color == PieceColor::White {
                 valid_y_start = 1;
-                number_of_cells_move = latest_move.to.row - latest_move.from.col;
+                number_of_cells_move = latest_move.to.row as i8 - latest_move.from.row as i8;
             } else {
                 valid_y_start = 6;
-                number_of_cells_move = latest_move.from.row - latest_move.to.col;
+                number_of_cells_move = latest_move.from.row as i8 - latest_move.to.row as i8;
             };
 
             // We check if the latest move was on the right start cell
             // if it moved 2 cells
             // and if the current pawn is next to this pawn latest position
-            if latest_move.from.row == valid_y_start
+            if latest_move.from.row as i8 == valid_y_start
                 && number_of_cells_move == 2
                 && y == latest_move.to.row
                 && (x == latest_move.to.col - 1 || x == latest_move.to.col + 1)

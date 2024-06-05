@@ -134,10 +134,10 @@ pub fn convert_position_into_notation(position: String) -> String {
 
 pub fn convert_notation_into_position(notation: String) -> String {
     let from_x = &letter_to_col(notation.chars().next());
-    let from_y = &get_int_from_char(notation.chars().nth(1)) - 8;
+    let from_y = (get_int_from_char(notation.chars().nth(1)) as i8 - 8).abs();
 
     let to_x = &letter_to_col(notation.chars().nth(2));
-    let to_y = &get_int_from_char(notation.chars().nth(3)) - 8;
+    let to_y = (get_int_from_char(notation.chars().nth(3)) as i8 - 8).abs();
 
     format!("{}{}{}{}", from_y, from_x, to_y, to_x)
 }

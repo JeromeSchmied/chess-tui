@@ -499,7 +499,7 @@ impl Board {
     pub fn did_pawn_move_two_cells(&self) -> bool {
         match self.move_history.last() {
             Some(last_move) => {
-                let distance = last_move.to.row - last_move.from.row;
+                let distance = (last_move.to.row as i8 - last_move.from.row as i8).abs();
 
                 if last_move.piece_type == PieceType::Pawn && distance == 2 {
                     return true;
