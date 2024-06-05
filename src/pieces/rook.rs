@@ -21,7 +21,7 @@ impl Movable for Rook {
         let (y, x) = (coordinates.row, coordinates.col);
 
         // RIGHT ROW
-        for i in 1..8i8 {
+        for i in 1..8u8 {
             let new_x = x + i;
             let new_y = y;
             let new_coordinates = Coord::new(new_y, new_x);
@@ -92,7 +92,7 @@ impl Movable for Rook {
         }
 
         // BOTTOM ROW
-        for i in 1..8i8 {
+        for i in 1..8u8 {
             let new_x = x;
             let new_y = y + i;
             let new_coordinates = Coord::new(new_y, new_x);
@@ -128,7 +128,7 @@ impl Movable for Rook {
         }
 
         // UP ROW
-        for i in 1..8i8 {
+        for i in 1..8u8 {
             let new_x = x;
             let new_y = y - i;
             let new_coordinates = Coord::new(new_y, new_x);

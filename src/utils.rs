@@ -60,8 +60,8 @@ pub fn get_all_protected_cells(
     move_history: &[PieceMove],
 ) -> Vec<Coord> {
     let mut check_cells: Vec<Coord> = vec![];
-    for i in 0..8i8 {
-        for j in 0..8i8 {
+    for i in 0..8u8 {
+        for j in 0..8u8 {
             if get_piece_color(board, &Coord::new(i, j)) == Some(player_turn) {
                 continue;
             }
@@ -163,7 +163,7 @@ pub fn did_piece_already_move(
 ) -> bool {
     for entry in move_history {
         if Some(entry.piece_type) == original_piece.0
-            && Coord::new(entry.from_y, entry.from_x) == original_piece.1
+            && Coord::new(entry.from_y as u8, entry.from_x as u8) == original_piece.1
         {
             return true;
         }
@@ -175,8 +175,8 @@ pub fn get_king_coordinates(
     board: [[Option<(PieceType, PieceColor)>; 8]; 8],
     player_turn: PieceColor,
 ) -> Coord {
-    for i in 0..8i8 {
-        for j in 0..8i8 {
+    for i in 0..8u8 {
+        for j in 0..8u8 {
             if let Some((piece_type, piece_color)) = board[i as usize][j as usize] {
                 if piece_type == PieceType::King && piece_color == player_turn {
                     return Coord::new(i, j);

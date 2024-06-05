@@ -14,8 +14,6 @@ impl Movable for Knight {
     ) -> Vec<Coord> {
         let mut positions: Vec<Coord> = Vec::new();
 
-        let (y, x) = (coordinates.row, coordinates.col);
-
         // Generate knight positions in all eight possible L-shaped moves
         let piece_move: [(i8, i8); 8] = [
             (-2, -1),
@@ -29,11 +27,13 @@ impl Movable for Knight {
         ];
 
         for &(dy, dx) in &piece_move {
-            let new_coordinates = Coord::new(y + dy, x + dx);
-
-            if !new_coordinates.is_valid() {
+            let new_coordinates = if let Some(new_coord) =
+                Coord::opt_new(coordinates.row as i8 + dy, coordinates.col as i8 + dx)
+            {
+                new_coord
+            } else {
                 continue;
-            }
+            };
 
             if is_cell_color_ally(board, &new_coordinates, color) && !allow_move_on_ally_positions {
                 continue;

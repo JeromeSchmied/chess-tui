@@ -22,14 +22,13 @@ impl Movable for Bishop {
 
         // for diagonal from piece to top left
         for i in 1..8u8 {
-            let new_x = x - i;
-            let new_y = y - i;
-            let new_coordinates = Coord::new(new_y, new_x);
-
-            // Invalid coords
-            if !new_coordinates.is_valid() {
+            let new_x: i8 = x as i8 - i as i8;
+            let new_y: i8 = y as i8 - i as i8;
+            let new_coordinates = if let Some(new_coord) = Coord::opt_new(new_y, new_x) {
+                new_coord
+            } else {
                 break;
-            }
+            };
 
             // Empty cell
             if get_piece_color(board, &new_coordinates).is_none() {
