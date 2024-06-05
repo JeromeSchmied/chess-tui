@@ -1,6 +1,6 @@
 use crate::{
     board::{Board, Coord},
-    constants::DisplayMode,
+    constants::{DisplayMode, UNDEFINED_POSITION},
     pieces::{PieceColor, PieceMove, PieceType},
 };
 use ratatui::{
@@ -41,7 +41,7 @@ pub fn cleaned_positions(positions: &[Coord]) -> Vec<Coord> {
     let mut cleaned_array: Vec<Coord> = vec![];
     for position in positions {
         if position.is_valid() {
-            cleaned_array.push(position.clone());
+            cleaned_array.push(*position);
         }
     }
     cleaned_array
@@ -88,7 +88,7 @@ pub fn get_all_protected_cells(
     check_cells
 }
 
-pub fn col_to_letter(col: i8) -> String {
+pub fn col_to_letter(col: u8) -> String {
     match col {
         0 => "a".to_string(),
         1 => "b".to_string(),
@@ -134,10 +134,10 @@ pub fn convert_position_into_notation(position: String) -> String {
 
 pub fn convert_notation_into_position(notation: String) -> String {
     let from_x = &letter_to_col(notation.chars().next());
-    let from_y = (&get_int_from_char(notation.chars().nth(1)) - 8).abs();
+    let from_y = &get_int_from_char(notation.chars().nth(1)) - 8;
 
     let to_x = &letter_to_col(notation.chars().nth(2));
-    let to_y = (&get_int_from_char(notation.chars().nth(3)) - 8).abs();
+    let to_y = &get_int_from_char(notation.chars().nth(3)) - 8;
 
     format!("{}{}{}{}", from_y, from_x, to_y, to_x)
 }
@@ -149,10 +149,10 @@ pub fn get_player_turn_in_modulo(color: PieceColor) -> usize {
     }
 }
 
-pub fn get_int_from_char(ch: Option<char>) -> i8 {
+pub fn get_int_from_char(ch: Option<char>) -> u8 {
     match ch {
-        Some(ch) => ch.to_digit(10).unwrap() as i8,
-        _ => -1,
+        Some(ch) => ch.to_digit(10).unwrap() as u8,
+        _ => UNDEFINED_POSITION,
     }
 }
 
@@ -169,7 +169,7 @@ pub fn did_piece_already_move(
 ) -> bool {
     for entry in move_history {
         if Some(entry.piece_type) == original_piece.0
-            && Coord::new(entry.from_y as u8, entry.from_x as u8) == original_piece.1
+            && Coord::new(entry.from.row, entry.from.col) == original_piece.1
         {
             return true;
         }

@@ -155,7 +155,7 @@ impl Movable for Bishop {
             }
 
             // Enemy cell
-            positions.push(new_coordinates.clone());
+            positions.push(new_coordinates);
             if !allow_move_on_ally_positions
                 || !is_piece_opposite_king(
                     board[new_coordinates.row as usize][new_coordinates.col as usize],

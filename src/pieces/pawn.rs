@@ -96,28 +96,28 @@ impl Movable for Pawn {
 
         // We check for en passant
         if let Some(latest_move) = get_latest_move(move_history) {
-            let valid_y_start: i8;
-            let number_of_cells_move: i8;
+            let valid_y_start: u8;
+            let number_of_cells_move: u8;
 
             if color == PieceColor::White {
                 valid_y_start = 1;
-                number_of_cells_move = latest_move.to_y - latest_move.from_y;
+                number_of_cells_move = latest_move.to.row - latest_move.from.col;
             } else {
                 valid_y_start = 6;
-                number_of_cells_move = latest_move.from_y - latest_move.to_y;
+                number_of_cells_move = latest_move.from.row - latest_move.to.col;
             };
 
             // We check if the latest move was on the right start cell
             // if it moved 2 cells
             // and if the current pawn is next to this pawn latest position
-            if latest_move.from_y == valid_y_start
+            if latest_move.from.row == valid_y_start
                 && number_of_cells_move == 2
-                && y as i8 == latest_move.to_y
-                && (x as i8 == latest_move.to_x - 1 || x as i8 == latest_move.to_x + 1)
+                && y == latest_move.to.row
+                && (x == latest_move.to.col - 1 || x == latest_move.to.col + 1)
             {
-                let new_y = latest_move.from_y + -direction;
-                let new_x = latest_move.from_x;
-                positions.push(Coord::new(new_y as u8, new_x as u8));
+                let new_y = latest_move.from.row as i8 + -direction;
+                let new_x = latest_move.from.col;
+                positions.push(Coord::new(new_y as u8, new_x));
             }
         }
 
@@ -387,10 +387,8 @@ mod tests {
             board.board,
             &[(PieceMove {
                 piece_type: PieceType::Pawn,
-                from_y: 1,
-                from_x: 2,
-                to_y: 3,
-                to_x: 2,
+                from: Coord::new(1, 2),
+                to: Coord::new(3, 2),
             })],
             false,
         );
@@ -431,10 +429,8 @@ mod tests {
             board.board,
             &[(PieceMove {
                 piece_type: PieceType::Pawn,
-                from_y: 6,
-                from_x: 3,
-                to_y: 4,
-                to_x: 3,
+                from: Coord::new(6, 3),
+                to: Coord::new(4, 3),
             })],
             false,
         );
@@ -484,10 +480,8 @@ mod tests {
             board.board,
             &[(PieceMove {
                 piece_type: PieceType::Pawn,
-                from_y: 6,
-                from_x: 3,
-                to_y: 4,
-                to_x: 3,
+                from: Coord::new(6, 3),
+                to: Coord::new(4, 3),
             })],
             false,
         );

@@ -16,7 +16,7 @@ use ratatui::{
 };
 use uci::Engine;
 
-#[derive(PartialEq, Clone, Debug, Eq, PartialOrd, Ord)]
+#[derive(PartialEq, Clone, Debug, Eq, PartialOrd, Ord, Copy)]
 pub struct Coord {
     /// row, line, y
     pub row: u8,
@@ -264,7 +264,7 @@ impl Board {
         if self.is_cell_selected() {
             self.selected_coordinates = Coord::undefined();
             self.selected_piece_cursor = 0;
-            self.cursor_coordinates = self.old_cursor_position.clone()
+            self.cursor_coordinates = self.old_cursor_position
         }
     }
 
@@ -294,7 +294,7 @@ impl Board {
             authorized_positions.sort();
 
             if let Some(position) = authorized_positions.get(self.selected_piece_cursor as usize) {
-                self.cursor_coordinates = position.clone();
+                self.cursor_coordinates = *position;
             }
         } else {
             self.cursor_coordinates = Coord::undefined();
@@ -323,8 +323,8 @@ impl Board {
                 }
                 if let Some(piece_color) = get_piece_color(self.board, &self.cursor_coordinates) {
                     if piece_color == self.player_turn {
-                        self.selected_coordinates = self.cursor_coordinates.clone();
-                        self.old_cursor_position = self.cursor_coordinates.clone();
+                        self.selected_coordinates = self.cursor_coordinates;
+                        self.old_cursor_position = self.cursor_coordinates;
                         self.move_selected_piece_cursor(true, 1);
                     }
                 }
@@ -474,9 +474,9 @@ impl Board {
             if let Some(last_move) = self.move_history.last() {
                 let mut converted_move = String::new();
 
-                converted_move += &col_to_letter(last_move.from_x);
+                converted_move += &col_to_letter(last_move.from.col);
                 // FEN starts counting from 1 not 0
-                converted_move += &format!("{}", 8 - last_move.from_y + 1).to_string();
+                converted_move += &format!("{}", 8 - last_move.from.row + 1).to_string();
 
                 result.push(' ');
                 result.push_str(&converted_move);
@@ -499,7 +499,7 @@ impl Board {
     pub fn did_pawn_move_two_cells(&self) -> bool {
         match self.move_history.last() {
             Some(last_move) => {
-                let distance = (last_move.to_y - last_move.from_y).abs();
+                let distance = last_move.to.row - last_move.from.row;
 
                 if last_move.piece_type == PieceType::Pawn && distance == 2 {
                     return true;
@@ -521,13 +521,11 @@ impl Board {
                 _ => unreachable!("Promotion cursor out of boundaries"),
             };
 
-            let current_piece_color = get_piece_color(
-                self.board,
-                &Coord::new(last_move.to_y as u8, last_move.to_x as u8),
-            );
+            let current_piece_color =
+                get_piece_color(self.board, &Coord::new(last_move.to.row, last_move.to.col));
             if let Some(piece_color) = current_piece_color {
                 // we replace the piece by the new piece type
-                self.board[last_move.to_y as usize][last_move.to_x as usize] =
+                self.board[last_move.to.row as usize][last_move.to.col as usize] =
                     Some((new_piece, piece_color));
             }
         }
@@ -624,10 +622,8 @@ impl Board {
         // We store it in the history
         self.move_history.push(PieceMove {
             piece_type: piece_type_from,
-            from_y: from.row as i8,
-            from_x: from.col as i8,
-            to_y: to.row as i8,
-            to_x: to.col as i8,
+            from: *from,
+            to: *to,
         });
     }
 
@@ -689,21 +685,19 @@ impl Board {
     // Check if the latest move is a promotion
     fn is_latest_move_promotion(&self) -> bool {
         if let Some(last_move) = self.move_history.last() {
-            if let Some(piece_type_to) = get_piece_type(
-                self.board,
-                &Coord::new(last_move.to_y as u8, last_move.to_x as u8),
-            ) {
-                if let Some(piece_color) = get_piece_color(
-                    self.board,
-                    &Coord::new(last_move.to_y as u8, last_move.to_x as u8),
-                ) {
+            if let Some(piece_type_to) =
+                get_piece_type(self.board, &Coord::new(last_move.to.row, last_move.to.col))
+            {
+                if let Some(piece_color) =
+                    get_piece_color(self.board, &Coord::new(last_move.to.row, last_move.to.col))
+                {
                     let last_row = if piece_color == PieceColor::White {
                         0
                     } else {
                         7
                     };
 
-                    if last_move.to_y == last_row && piece_type_to == PieceType::Pawn {
+                    if last_move.to.row == last_row && piece_type_to == PieceType::Pawn {
                         return true;
                     }
                 }
@@ -874,10 +868,10 @@ impl Board {
                 PieceType::piece_to_utf_enum(piece_type_from, Some(PieceColor::White));
             let move_white = convert_position_into_notation(format!(
                 "{}{}{}{}",
-                self.move_history[i].from_y,
-                self.move_history[i].from_x,
-                self.move_history[i].to_y,
-                self.move_history[i].to_x
+                self.move_history[i].from.row,
+                self.move_history[i].from.col,
+                self.move_history[i].to.row,
+                self.move_history[i].to.col
             ));
 
             let mut utf_icon_black = "   ";
@@ -889,10 +883,10 @@ impl Board {
 
                 move_black = convert_position_into_notation(format!(
                     "{}{}{}{}",
-                    self.move_history[i + 1].from_y,
-                    self.move_history[i + 1].from_x,
-                    self.move_history[i + 1].to_y,
-                    self.move_history[i + 1].to_x
+                    self.move_history[i + 1].from.row,
+                    self.move_history[i + 1].from.col,
+                    self.move_history[i + 1].to.row,
+                    self.move_history[i + 1].to.col
                 ));
                 utf_icon_black =
                     PieceType::piece_to_utf_enum(piece_type_to, Some(PieceColor::Black))
@@ -1422,10 +1416,8 @@ mod tests {
             vec![
                 (PieceMove {
                     piece_type: PieceType::Pawn,
-                    from_y: 7,
-                    from_x: 3,
-                    to_y: 6,
-                    to_x: 3,
+                    from: Coord::new(7, 3),
+                    to: Coord::new(6, 3),
                 }),
             ],
         );
@@ -1477,10 +1469,8 @@ mod tests {
             vec![
                 (PieceMove {
                     piece_type: PieceType::Pawn,
-                    from_y: 1,
-                    from_x: 4,
-                    to_y: 0,
-                    to_x: 4,
+                    from: Coord::new(1, 4),
+                    to: Coord::new(0, 4),
                 }),
             ],
         );
@@ -1588,10 +1578,8 @@ mod tests {
             vec![
                 (PieceMove {
                     piece_type: PieceType::Pawn,
-                    from_y: 6,
-                    from_x: 4,
-                    to_y: 7,
-                    to_x: 4,
+                    from: Coord::new(6, 4),
+                    to: Coord::new(7, 4),
                 }),
             ],
         );
@@ -1719,59 +1707,43 @@ mod tests {
             vec![
                 (PieceMove {
                     piece_type: PieceType::King,
-                    from_y: 0,
-                    from_x: 2,
-                    to_y: 0,
-                    to_x: 1,
+                    from: Coord::new(0, 2),
+                    to: Coord::new(0, 1),
                 }),
                 (PieceMove {
                     piece_type: PieceType::King,
-                    from_y: 0,
-                    from_x: 6,
-                    to_y: 0,
-                    to_x: 5,
+                    from: Coord::new(0, 6),
+                    to: Coord::new(0, 5),
                 }),
                 (PieceMove {
                     piece_type: PieceType::King,
-                    from_y: 0,
-                    from_x: 1,
-                    to_y: 0,
-                    to_x: 2,
+                    from: Coord::new(0, 1),
+                    to: Coord::new(0, 2),
                 }),
                 (PieceMove {
                     piece_type: PieceType::King,
-                    from_y: 0,
-                    from_x: 5,
-                    to_y: 0,
-                    to_x: 6,
+                    from: Coord::new(0, 5),
+                    to: Coord::new(0, 6),
                 }),
                 (PieceMove {
                     piece_type: PieceType::King,
-                    from_y: 0,
-                    from_x: 2,
-                    to_y: 0,
-                    to_x: 1,
+                    from: Coord::new(0, 2),
+                    to: Coord::new(0, 1),
                 }),
                 (PieceMove {
                     piece_type: PieceType::King,
-                    from_y: 0,
-                    from_x: 6,
-                    to_y: 0,
-                    to_x: 5,
+                    from: Coord::new(0, 6),
+                    to: Coord::new(0, 5),
                 }),
                 (PieceMove {
                     piece_type: PieceType::King,
-                    from_y: 0,
-                    from_x: 1,
-                    to_y: 0,
-                    to_x: 2,
+                    from: Coord::new(0, 1),
+                    to: Coord::new(0, 2),
                 }),
                 (PieceMove {
                     piece_type: PieceType::King,
-                    from_y: 0,
-                    from_x: 5,
-                    to_y: 0,
-                    to_x: 6,
+                    from: Coord::new(0, 5),
+                    to: Coord::new(0, 6),
                 }),
             ],
         );
@@ -1866,10 +1838,8 @@ mod tests {
             vec![
                 (PieceMove {
                     piece_type: PieceType::Pawn,
-                    from_y: 6,
-                    from_x: 2,
-                    to_y: 4,
-                    to_x: 2,
+                    from: Coord::new(6, 2),
+                    to: Coord::new(4, 2),
                 }),
             ],
         );
