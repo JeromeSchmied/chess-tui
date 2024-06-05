@@ -21,7 +21,7 @@ impl Movable for Bishop {
         let x = coordinates.col;
 
         // for diagonal from piece to top left
-        for i in 1..8i8 {
+        for i in 1..8u8 {
             let new_x = x - i;
             let new_y = y - i;
             let new_coordinates = Coord::new(new_y, new_x);
@@ -56,7 +56,7 @@ impl Movable for Bishop {
         }
 
         // for diagonal from piece to bottom right
-        for i in 1..8i8 {
+        for i in 1..8u8 {
             let new_x = x + i;
             let new_y = y + i;
 
@@ -92,7 +92,7 @@ impl Movable for Bishop {
         }
 
         // for diagonal from piece to bottom left
-        for i in 1..8i8 {
+        for i in 1..8u8 {
             let new_x = x - i;
             let new_y = y + i;
             let new_coordinates = Coord::new(new_y, new_x);
@@ -127,15 +127,14 @@ impl Movable for Bishop {
         }
 
         // for diagonal from piece to top right
-        for i in 1..8i8 {
+        for i in 1..8u8 {
             let new_x = x + i;
             let new_y = y - i;
-            let new_coordinates = Coord::new(new_y, new_x);
-
-            // Invalid coords
-            if !new_coordinates.is_valid() {
+            let new_coordinates = if let Some(new_coord) = Coord::opt_new(new_y, new_x) {
+                new_coord
+            } else {
                 break;
-            }
+            };
 
             // Empty cell
             if get_piece_color(board, &new_coordinates).is_none() {
@@ -153,9 +152,12 @@ impl Movable for Bishop {
             }
 
             // Enemy cell
-            positions.push(new_coordinates);
+            positions.push(new_coordinates.clone());
             if !allow_move_on_ally_positions
-                || !is_piece_opposite_king(board[new_y as usize][new_x as usize], color)
+                || !is_piece_opposite_king(
+                    board[new_coordinates.row as usize][new_coordinates.col as usize],
+                    color,
+                )
             {
                 break;
             }

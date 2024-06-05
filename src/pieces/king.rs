@@ -21,18 +21,18 @@ impl Movable for King {
 
         // can move on a complete row
         // Generate positions in all eight possible directions
-        for &dy in &[-1, 0, 1] {
-            for &dx in &[-1, 0, 1] {
+        for &dy in &[-1i8, 0, 1] {
+            for &dx in &[-1i8, 0, 1] {
                 // Skip the case where both dx and dy are zero (the current position)
-                let new_x = x + dx;
-                let new_y = y + dy;
+                let new_x = x as i8 + dx;
+                let new_y = y as i8 + dy;
 
-                let new_coordinates = Coord::new(new_y, new_x);
+                let new_coordinates = Coord::new(new_y as u8, new_x as u8);
                 if new_coordinates.is_valid()
                     && (!is_cell_color_ally(board, &new_coordinates, color)
                         || allow_move_on_ally_positions)
                 {
-                    positions.push(Coord::new(y + dy, x + dx));
+                    positions.push(new_coordinates);
                 }
             }
         }
@@ -141,7 +141,7 @@ impl King {
         let mut valid_for_castling = true;
 
         for i in start..=end {
-            let new_coordinates = Coord::new(king_line, i);
+            let new_coordinates = Coord::new(king_line, i as u8);
 
             if checked_cells.contains(&new_coordinates) {
                 valid_for_castling = false;

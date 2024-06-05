@@ -17,7 +17,7 @@ impl Movable for Knight {
         let (y, x) = (coordinates.row, coordinates.col);
 
         // Generate knight positions in all eight possible L-shaped moves
-        let piece_move = [
+        let piece_move: [(i8, i8); 8] = [
             (-2, -1),
             (-2, 1),
             (-1, -2),

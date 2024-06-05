@@ -19,22 +19,31 @@ use uci::Engine;
 #[derive(PartialEq, Clone, Debug, Eq, PartialOrd, Ord)]
 pub struct Coord {
     /// row, line, y
-    pub row: i8,
+    pub row: u8,
     /// column, x
-    pub col: i8,
+    pub col: u8,
 }
 impl Coord {
-    pub fn new<T: Into<i8>>(row: T, col: T) -> Self {
+    pub fn new<T: Into<u8>>(row: T, col: T) -> Self {
         Coord {
             row: row.into(),
             col: col.into(),
         }
     }
+    /// optional new: try to convert from `i32` to `u8`, if can't: `None`
+    pub fn opt_new<T: Into<i32>>(row: T, col: T) -> Option<Self> {
+        let row: i32 = row.into();
+        let row: u8 = row.try_into().ok()?;
+
+        let col: i32 = col.into();
+        let col: u8 = col.try_into().ok()?;
+        Some(Coord { row, col })
+    }
     /// not yet set position, has to later be set and only used afterwards
     pub fn undefined() -> Self {
         Coord {
-            row: UNDEFINED_POSITION as i8,
-            col: UNDEFINED_POSITION as i8,
+            row: UNDEFINED_POSITION,
+            col: UNDEFINED_POSITION,
         }
     }
     /// checks whether `self` is valid as a chess board coordinate
@@ -173,8 +182,8 @@ impl Board {
 
     // Check if a cell has been selected
     fn is_cell_selected(&self) -> bool {
-        self.selected_coordinates.row != UNDEFINED_POSITION as i8
-            && self.selected_coordinates.col != UNDEFINED_POSITION as i8
+        self.selected_coordinates.row != UNDEFINED_POSITION
+            && self.selected_coordinates.col != UNDEFINED_POSITION
     }
 
     fn get_authorized_positions(
@@ -382,7 +391,10 @@ impl Board {
         let to_y = get_int_from_char(converted_move.chars().nth(2));
         let to_x = get_int_from_char(converted_move.chars().nth(3));
 
-        self.move_piece_on_the_board(&Coord::new(from_y, from_x), &Coord::new(to_y, to_x));
+        self.move_piece_on_the_board(
+            &Coord::new(from_y as u8, from_x as u8),
+            &Coord::new(to_y as u8, to_x as u8),
+        );
     }
 
     // Convert the history and game status to a FEN string
@@ -390,8 +402,8 @@ impl Board {
         let mut result = String::new();
 
         // We loop through the board and convert it to a FEN string
-        for i in 0..8i8 {
-            for j in 0..8i8 {
+        for i in 0..8u8 {
+            for j in 0..8u8 {
                 // We get the piece type and color
                 let (piece_type, piece_color) = (
                     get_piece_type(self.board, &Coord::new(i, j)),
@@ -509,8 +521,10 @@ impl Board {
                 _ => unreachable!("Promotion cursor out of boundaries"),
             };
 
-            let current_piece_color =
-                get_piece_color(self.board, &Coord::new(last_move.to_y, last_move.to_x));
+            let current_piece_color = get_piece_color(
+                self.board,
+                &Coord::new(last_move.to_y as u8, last_move.to_x as u8),
+            );
             if let Some(piece_color) = current_piece_color {
                 // we replace the piece by the new piece type
                 self.board[last_move.to_y as usize][last_move.to_x as usize] =
@@ -610,10 +624,10 @@ impl Board {
         // We store it in the history
         self.move_history.push(PieceMove {
             piece_type: piece_type_from,
-            from_y: from.row,
-            from_x: from.col,
-            to_y: to.row,
-            to_x: to.col,
+            from_y: from.row as i8,
+            from_x: from.col as i8,
+            to_y: to.row as i8,
+            to_x: to.col as i8,
         });
     }
 
@@ -628,7 +642,7 @@ impl Board {
                         possible_moves.extend(self.get_authorized_positions(
                             Some(piece_type),
                             Some(piece_color),
-                            &Coord::new(i as i8, j as i8),
+                            &Coord::new(i as u8, j as u8),
                         ))
                     }
                 }
@@ -675,12 +689,14 @@ impl Board {
     // Check if the latest move is a promotion
     fn is_latest_move_promotion(&self) -> bool {
         if let Some(last_move) = self.move_history.last() {
-            if let Some(piece_type_to) =
-                get_piece_type(self.board, &Coord::new(last_move.to_y, last_move.to_x))
-            {
-                if let Some(piece_color) =
-                    get_piece_color(self.board, &Coord::new(last_move.to_y, last_move.to_x))
-                {
+            if let Some(piece_type_to) = get_piece_type(
+                self.board,
+                &Coord::new(last_move.to_y as u8, last_move.to_x as u8),
+            ) {
+                if let Some(piece_color) = get_piece_color(
+                    self.board,
+                    &Coord::new(last_move.to_y as u8, last_move.to_x as u8),
+                ) {
                     let last_row = if piece_color == PieceColor::White {
                         0
                     } else {
@@ -756,7 +772,7 @@ impl Board {
             .split(area);
 
         // For each line we set 8 layout
-        for i in 0..8i8 {
+        for i in 0..8u8 {
             let lines = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints(
@@ -775,7 +791,7 @@ impl Board {
                     .as_ref(),
                 )
                 .split(columns[i as usize + 1]);
-            for j in 0..8i8 {
+            for j in 0..8u8 {
                 // Color of the cell to draw the board
                 let mut cell_color: Color = if (i + j) % 2 == 0 { WHITE } else { BLACK };
 
