@@ -13,6 +13,9 @@ pub fn get_piece_color(
     board: [[Option<(PieceType, PieceColor)>; 8]; 8],
     coordinates: &Coord,
 ) -> Option<PieceColor> {
+    if !coordinates.is_valid() {
+        return None;
+    }
     board[coordinates.row as usize][coordinates.col as usize].map(|(_, piece_color)| piece_color)
 }
 
@@ -20,6 +23,9 @@ pub fn get_piece_type(
     board: [[Option<(PieceType, PieceColor)>; 8]; 8],
     coordinates: &Coord,
 ) -> Option<PieceType> {
+    if !coordinates.is_valid() {
+        return None;
+    }
     board[coordinates.row as usize][coordinates.col as usize].map(|(piece_type, _)| piece_type)
 }
 

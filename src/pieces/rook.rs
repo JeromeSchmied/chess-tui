@@ -57,14 +57,13 @@ impl Movable for Rook {
 
         // LEFT ROW
         for i in 1..=8 {
-            let new_x = x - i;
-            let new_y = y;
-            let new_coordinates = Coord::new(new_y, new_x);
-
-            // Invalid coords
-            if !new_coordinates.is_valid() {
+            let new_x: i8 = x as i8 - i as i8;
+            let new_y: i8 = y as i8;
+            let new_coordinates = if let Some(new_coord) = Coord::opt_new(new_y, new_x) {
+                new_coord
+            } else {
                 break;
-            }
+            };
 
             // Empty piece
             if get_piece_color(board, &new_coordinates).is_none() {
@@ -129,14 +128,13 @@ impl Movable for Rook {
 
         // UP ROW
         for i in 1..8u8 {
-            let new_x = x;
-            let new_y = y - i;
-            let new_coordinates = Coord::new(new_y, new_x);
-
-            // Invalid coords
-            if !new_coordinates.is_valid() {
+            let new_x = x as i8;
+            let new_y = y as i8 - i as i8;
+            let new_coordinates = if let Some(new_coord) = Coord::opt_new(new_y, new_x) {
+                new_coord
+            } else {
                 break;
-            }
+            };
 
             // Empty cell
             if get_piece_color(board, &new_coordinates).is_none() {
