@@ -24,9 +24,7 @@ impl Movable for Bishop {
         for i in 1..8u8 {
             let new_x: i8 = x as i8 - i as i8;
             let new_y: i8 = y as i8 - i as i8;
-            let new_coordinates = if let Some(new_coord) = Coord::opt_new(new_y, new_x) {
-                new_coord
-            } else {
+            let Some(new_coordinates) = Coord::opt_new(new_y, new_x) else {
                 break;
             };
 
@@ -94,9 +92,7 @@ impl Movable for Bishop {
         for i in 1..8u8 {
             let new_x: i8 = x as i8 - i as i8;
             let new_y: i8 = y as i8 + i as i8;
-            let new_coordinates = if let Some(new_coord) = Coord::opt_new(new_y, new_x) {
-                new_coord
-            } else {
+            let Some(new_coordinates) = Coord::opt_new(new_y, new_x) else {
                 break;
             };
 
@@ -133,9 +129,7 @@ impl Movable for Bishop {
         for i in 1..8u8 {
             let new_x = x as i8 + i as i8;
             let new_y = y as i8 - i as i8;
-            let new_coordinates = if let Some(new_coord) = Coord::opt_new(new_y, new_x) {
-                new_coord
-            } else {
+            let Some(new_coordinates) = Coord::opt_new(new_y, new_x) else {
                 break;
             };
 

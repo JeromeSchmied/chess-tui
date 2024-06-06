@@ -27,11 +27,9 @@ impl Movable for Knight {
         ];
 
         for &(dy, dx) in &piece_move {
-            let new_coordinates = if let Some(new_coord) =
+            let Some(new_coordinates) =
                 Coord::opt_new(coordinates.row as i8 + dy, coordinates.col as i8 + dx)
-            {
-                new_coord
-            } else {
+            else {
                 continue;
             };
 
