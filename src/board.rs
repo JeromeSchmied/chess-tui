@@ -52,6 +52,20 @@ impl Coord {
     }
 }
 
+impl std::ops::Index<&Coord> for Board {
+    type Output = Option<(PieceType, PieceColor)>;
+
+    fn index(&self, index: &Coord) -> &Self::Output {
+        &self.board[index.row as usize][index.col as usize]
+    }
+}
+
+impl std::ops::IndexMut<&Coord> for Board {
+    fn index_mut(&mut self, index: &Coord) -> &mut Self::Output {
+        &mut self.board[index.row as usize][index.col as usize]
+    }
+}
+
 pub struct Board {
     pub board: [[Option<(PieceType, PieceColor)>; 8]; 8],
     pub cursor_coordinates: Coord,
@@ -586,8 +600,7 @@ impl Board {
             let row_index = from_x + direction_x * 2;
 
             // We put move the king 2 cells
-            self.board[to.row as usize][row_index as usize] =
-                self.board[from.row as usize][from.col as usize];
+            self.board[to.row as usize][row_index as usize] = self[from];
 
             // We put the rook 3 cells from it's position if it's a big castling else 2 cells
             // If it is playing against a bot we will receive 4 -> 6  and 4 -> 2 for to_x instead of 4 -> 7 and 4 -> 0
@@ -607,17 +620,16 @@ impl Board {
                 }
                 _ => unreachable!("Undefined distance for castling"),
             }
-            self.board[to.row as usize][row_index_rook as usize] =
-                self.board[to.row as usize][to_x as usize];
+            let new_to = Coord::new(to.row, to_x as u8);
+            self.board[to.row as usize][row_index_rook as usize] = self[&new_to];
 
             // We remove the latest rook
-            self.board[to.row as usize][to_x as usize] = None;
+            self[&new_to] = None;
         } else {
-            self.board[to.row as usize][to.col as usize] =
-                self.board[from.row as usize][from.col as usize];
+            self[to] = self[from];
         }
 
-        self.board[from.row as usize][from.col as usize] = None;
+        self[from] = None;
 
         // We store it in the history
         self.move_history.push(PieceMove {
@@ -633,12 +645,13 @@ impl Board {
 
         for i in 0..8 {
             for j in 0..8 {
-                if let Some((piece_type, piece_color)) = self.board[i][j] {
+                let coord = Coord::new(i, j);
+                if let Some((piece_type, piece_color)) = self[&coord] {
                     if piece_color == self.player_turn {
                         possible_moves.extend(self.get_authorized_positions(
                             Some(piece_type),
                             Some(piece_color),
-                            &Coord::new(i as u8, j as u8),
+                            &coord,
                         ))
                     }
                 }
@@ -659,9 +672,7 @@ impl Board {
         match (piece_type_from, piece_type_to) {
             (Some(PieceType::Pawn), _) => {
                 // Check if it's a diagonal move, and the destination is an empty cell
-                from_y != to_y
-                    && from_x != to_x
-                    && self.board[to.row as usize][to.col as usize].is_none()
+                from_y != to_y && from_x != to_x && self[to].is_none()
             }
             _ => false,
         }
