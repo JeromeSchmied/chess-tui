@@ -40,7 +40,13 @@ impl Coord {
 
         let col: i32 = col.into();
         let col: u8 = col.try_into().ok()?;
-        Some(Coord { row, col })
+
+        let ret = Coord { row, col };
+        if !ret.is_valid() {
+            None
+        } else {
+            Some(ret)
+        }
     }
     /// not yet set position, has to later be set and only used afterwards
     pub fn undefined() -> Self {
