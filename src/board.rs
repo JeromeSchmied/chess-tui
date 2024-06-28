@@ -16,6 +16,9 @@ use ratatui::{
 };
 use uci::Engine;
 
+// only the pure gameboard, no additional information
+pub type GameBoard = [[Option<(PieceType, PieceColor)>; 8]; 8];
+
 #[derive(PartialEq, Clone, Debug, Eq, PartialOrd, Ord, Copy)]
 pub struct Coord {
     /// row, line, y
@@ -52,22 +55,22 @@ impl Coord {
     }
 }
 
-impl std::ops::Index<&Coord> for Board {
+impl std::ops::Index<&Coord> for GameBoard {
     type Output = Option<(PieceType, PieceColor)>;
 
     fn index(&self, index: &Coord) -> &Self::Output {
-        &self.board[index.row as usize][index.col as usize]
+        &self[index.row as usize][index.col as usize]
     }
 }
 
-impl std::ops::IndexMut<&Coord> for Board {
+impl std::ops::IndexMut<&Coord> for GameBoard {
     fn index_mut(&mut self, index: &Coord) -> &mut Self::Output {
-        &mut self.board[index.row as usize][index.col as usize]
+        &mut self[index.row as usize][index.col as usize]
     }
 }
 
 pub struct Board {
-    pub board: [[Option<(PieceType, PieceColor)>; 8]; 8],
+    pub board: GameBoard,
     pub cursor_coordinates: Coord,
     pub selected_coordinates: Coord,
     pub selected_piece_cursor: i8,
@@ -152,11 +155,7 @@ impl Default for Board {
 }
 
 impl Board {
-    pub fn new(
-        board: [[Option<(PieceType, PieceColor)>; 8]; 8],
-        player_turn: PieceColor,
-        move_history: Vec<PieceMove>,
-    ) -> Self {
+    pub fn new(board: GameBoard, player_turn: PieceColor, move_history: Vec<PieceMove>) -> Self {
         Self {
             board,
             cursor_coordinates: Coord::new(4, 4),
@@ -177,7 +176,7 @@ impl Board {
     }
 
     // Setters
-    pub fn set_board(&mut self, board: [[Option<(PieceType, PieceColor)>; 8]; 8]) {
+    pub fn set_board(&mut self, board: GameBoard) {
         self.board = board;
     }
 
@@ -600,7 +599,7 @@ impl Board {
             let row_index = from_x + direction_x * 2;
 
             // We put move the king 2 cells
-            self.board[to.row as usize][row_index as usize] = self[from];
+            self.board[to.row as usize][row_index as usize] = self.board[from];
 
             // We put the rook 3 cells from it's position if it's a big castling else 2 cells
             // If it is playing against a bot we will receive 4 -> 6  and 4 -> 2 for to_x instead of 4 -> 7 and 4 -> 0
@@ -621,15 +620,15 @@ impl Board {
                 _ => unreachable!("Undefined distance for castling"),
             }
             let new_to = Coord::new(to.row, to_x as u8);
-            self.board[to.row as usize][row_index_rook as usize] = self[&new_to];
+            self.board[to.row as usize][row_index_rook as usize] = self.board[&new_to];
 
             // We remove the latest rook
-            self[&new_to] = None;
+            self.board[&new_to] = None;
         } else {
-            self[to] = self[from];
+            self.board[to] = self.board[from];
         }
 
-        self[from] = None;
+        self.board[from] = None;
 
         // We store it in the history
         self.move_history.push(PieceMove {
@@ -646,7 +645,7 @@ impl Board {
         for i in 0..8 {
             for j in 0..8 {
                 let coord = Coord::new(i, j);
-                if let Some((piece_type, piece_color)) = self[&coord] {
+                if let Some((piece_type, piece_color)) = self.board[&coord] {
                     if piece_color == self.player_turn {
                         possible_moves.extend(self.get_authorized_positions(
                             Some(piece_type),
@@ -672,7 +671,7 @@ impl Board {
         match (piece_type_from, piece_type_to) {
             (Some(PieceType::Pawn), _) => {
                 // Check if it's a diagonal move, and the destination is an empty cell
-                from_y != to_y && from_x != to_x && self[to].is_none()
+                from_y != to_y && from_x != to_x && self.board[to].is_none()
             }
             _ => false,
         }

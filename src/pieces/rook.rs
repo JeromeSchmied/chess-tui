@@ -1,5 +1,5 @@
-use super::{Movable, PieceColor, PieceMove, PieceType, Position};
-use crate::board::Coord;
+use super::{Movable, PieceColor, PieceMove, Position};
+use crate::board::{Coord, GameBoard};
 use crate::constants::DisplayMode;
 use crate::utils::{
     cleaned_positions, get_piece_color, impossible_positions_king_checked, is_cell_color_ally,
@@ -11,7 +11,7 @@ impl Movable for Rook {
     fn piece_move(
         coordinates: &Coord,
         color: PieceColor,
-        board: [[Option<(PieceType, PieceColor)>; 8]; 8],
+        board: GameBoard,
         allow_move_on_ally_positions: bool,
         _move_history: &[PieceMove],
     ) -> Vec<Coord> {
@@ -164,7 +164,7 @@ impl Position for Rook {
     fn authorized_positions(
         coordinates: &Coord,
         color: PieceColor,
-        board: [[Option<(PieceType, PieceColor)>; 8]; 8],
+        board: GameBoard,
         move_history: &[PieceMove],
         _is_king_checked: bool,
     ) -> Vec<Coord> {
@@ -182,7 +182,7 @@ impl Position for Rook {
     fn protected_positions(
         coordinates: &Coord,
         color: PieceColor,
-        board: [[Option<(PieceType, PieceColor)>; 8]; 8],
+        board: GameBoard,
         move_history: &[PieceMove],
     ) -> Vec<Coord> {
         Self::piece_move(coordinates, color, board, true, move_history)

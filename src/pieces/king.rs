@@ -1,5 +1,5 @@
 use super::{Movable, PieceColor, PieceMove, PieceType, Position};
-use crate::board::Coord;
+use crate::board::{Coord, GameBoard};
 use crate::constants::DisplayMode;
 use crate::utils::{
     cleaned_positions, did_piece_already_move, get_all_protected_cells, get_piece_type,
@@ -11,7 +11,7 @@ impl Movable for King {
     fn piece_move(
         coordinates: &Coord,
         color: PieceColor,
-        board: [[Option<(PieceType, PieceColor)>; 8]; 8],
+        board: GameBoard,
         allow_move_on_ally_positions: bool,
         _move_history: &[PieceMove],
     ) -> Vec<Coord> {
@@ -45,7 +45,7 @@ impl Position for King {
     fn authorized_positions(
         coordinates: &Coord,
         color: PieceColor,
-        board: [[Option<(PieceType, PieceColor)>; 8]; 8],
+        board: GameBoard,
         move_history: &[PieceMove],
         is_king_checked: bool,
     ) -> Vec<Coord> {
@@ -105,7 +105,7 @@ impl Position for King {
     fn protected_positions(
         coordinates: &Coord,
         color: PieceColor,
-        board: [[Option<(PieceType, PieceColor)>; 8]; 8],
+        board: GameBoard,
         move_history: &[PieceMove],
     ) -> Vec<Coord> {
         Self::piece_move(coordinates, color, board, true, move_history)
@@ -130,7 +130,7 @@ impl King {
 
     // Check if nothing is in between the king and a rook and if none of those cells are getting checked
     pub fn check_castling_condition(
-        board: [[Option<(PieceType, PieceColor)>; 8]; 8],
+        board: GameBoard,
         color: PieceColor,
         start: i8,
         end: i8,
