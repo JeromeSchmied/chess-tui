@@ -33,7 +33,7 @@ impl Coord {
             col: col.into(),
         }
     }
-    /// optional new: try to convert from `i32` to `u8`, if can't: `None`
+    /// optional new: try making a valid [`Coord`], if can't, return [`None`]
     pub fn opt_new<T: Into<i32>>(row: T, col: T) -> Option<Self> {
         let row: i32 = row.into();
         let row: u8 = row.try_into().ok()?;
